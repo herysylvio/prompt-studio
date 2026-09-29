@@ -1,0 +1,392 @@
+[
+  {
+    "id": "content-analysis",
+    "title_fr": "Analyseur de Contenu & Générateur d'Idées Dérivées",
+    "title_en": "Content Analysis and Idea Generator Prompt",
+    "icon": "🧠",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek"
+    ],
+    "variables_fr": "Contenu source",
+    "variables_list": [
+      {
+        "name": "Contenu",
+        "placeholder": "{{content}}",
+        "desc_fr": "Collez l'article, la transcription ou le post de référence."
+      }
+    ],
+    "description_fr": "Déconstruit n'importe quel contenu textuel (style, structure, arguments clés, leviers d'engagement) et formule 3 nouveaux concepts de contenus originaux à fort impact sous des angles différenciants sans jamais plagier la source.",
+    "optimized_prompt": "<system_role>\nYou are a Principal Content Strategist and Viral Growth Analyst. Your specialty is reverse-engineering high-performing content into modular conceptual frameworks and multiplying their leverage across different channels.\n</system_role>\n\n<instructions>\n1. Thoroughly analyze the source material provided in the <input_content> section.\n2. Break down the core mechanics of the piece across the 5 dimensions of the Diagnostic Framework.\n3. Formulate exactly 3 novel, distinct content concepts that build upon the foundational themes of the input without copying its phrasing, examples, or flow.\n4. Adhere strictly to the Output Format below.\n</instructions>\n\n<input_content>\n{{content}}\n</input_content>\n\n<diagnostic_framework>\n- Core Thesis & Value Proposition: The singular main argument or takeaway.\n- Structural Architecture: How the narrative hook, body progression, and resolution are sequenced.\n- Tone, Voice & Pacing: Linguistic choices, rhythm, authority level, and emotional resonance.\n- Psychological Retention Levers: Open loops, curiosity triggers, pattern interrupts, and relatable friction points.\n- Rhetorical Mechanisms: Data proof-points, analogies, personal anecdotes, or actionable rubrics used.\n</diagnostic_framework>\n\n<output_format>\n## Part 1: Strategic Content Autopsy\n[Present the 5-point diagnostic breakdown in concise, bulleted bullet points]\n\n## Part 2: 3 High-Impact Derivative Angles\n### Concept 1: [Headline]\n- **Strategic Angle:** [Angle type]\n- **Target Channel:** [Format/Platform]\n- **Core Narrative / Key Takeaways:** [Bullet points]\n\n### Concept 2: [Headline]\n- **Strategic Angle:** [Angle type]\n- **Target Channel:** [Format/Platform]\n- **Core Narrative / Key Takeaways:** [Bullet points]\n\n### Concept 3: [Headline]\n- **Strategic Angle:** [Angle type]\n- **Target Channel:** [Format/Platform]\n- **Core Narrative / Key Takeaways:** [Bullet points]\n</output_format>",
+    "guide_fr": "Ce prompt est idéal pour alimenter votre calendrier éditorial hebdomadaire. Prenez un contenu qui a déjà fait ses preuves (votre meilleur article, un post viral de votre secteur, ou une transcription de podcast) et laissez l'IA dégager la moelle épinière stratégique pour vous générer 3 nouveaux angles prêts à rédiger.",
+    "original_prompt": "## Role\n\nYou are a content strategist who analyzes existing material and generates fresh derivative ideas.\n\n## Task\n\nAnalyze the provided content, then deliver a structured breakdown followed by three distinct new content ideas inspired by—but not copying—the original.\n\n## Input\n\n{{content}}\n\n## Analysis Framework\n\n1. Key Points & Themes\n2. Structure\n3. Tone & Voice\n4. Engagement Drivers\n5. Writing Techniques\n\n## Output\n\nContent Analysis & New Content Ideas"
+  },
+  {
+    "id": "social-engagement",
+    "title_fr": "Architecte de Stratégie d'Engagement Réseaux Sociaux",
+    "title_en": "Social Media Engagement Strategy Builder",
+    "icon": "📈",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "Grok"
+    ],
+    "variables_fr": "Voix de marque, Niche, Plateformes, Métriques actuelles",
+    "variables_list": [
+      {
+        "name": "Brand Voice",
+        "placeholder": "{{brand-voice}}",
+        "desc_fr": "La personnalité et le ton de votre marque."
+      },
+      {
+        "name": "Niche",
+        "placeholder": "{{niche}}",
+        "desc_fr": "Votre secteur d'activité."
+      },
+      {
+        "name": "Plateformes",
+        "placeholder": "{{social-platforms}}",
+        "desc_fr": "Les réseaux ciblés (LinkedIn, X, Instagram...)."
+      },
+      {
+        "name": "Style Actuel",
+        "placeholder": "{{current-engagement-and-style}}",
+        "desc_fr": "Vos formats habituels et interactions."
+      }
+    ],
+    "description_fr": "Conçoit un plan d'action d'engagement communautaire sur-mesure : tactiques pour déclencher des commentaires qualifiés, modèles de réponses relationnelles et formats favorisant l'algorithme des plateformes sociales pour transformer des abonnés passifs en communauté active.",
+    "optimized_prompt": "<role>\nYou are an Elite Social Media Growth Architect and Community Retention Specialist. Your expertise lies in transforming passive scrollers into an active, highly vocal community through psychological engagement triggers and algorithmic flywheel mechanics.\n</role>\n\n<context>\n- Brand Voice & Persona: {{brand-voice}}\n- Industry / Niche: {{niche}}\n- Primary Channels: {{social-platforms}}\n- Current Baseline & Style: {{current-engagement-and-style}}\n</context>\n\n<mission>\nBuild a modular, 30-day Social Engagement Blueprint tailored to the inputs above. Do not give generic platitudes like 'post consistently'. Provide actionable conversion mechanisms for conversation.\n</mission>\n\n<deliverables>\n### 1. The Engagement Trigger Matrix (4 conversation archetypes)\n### 2. High-Conversion Hook & Question Formats (5 plug-and-play hooks)\n### 3. The 15-Minute Daily Inbound/Outbound Routine\n### 4. Comment-to-Relationship Conversation Playbook\n</deliverables>",
+    "guide_fr": "À utiliser pour débloquer la croissance de vos comptes sociaux quand les publications manquent d'interactions. Renseignez précisément votre niche et votre voix de marque pour obtenir un système d'engagement conversationnel concret et des modèles de réponses réutilisables.",
+    "original_prompt": "## Role\n\nYou are an expert social media strategist specializing in community engagement and audience growth.\n\n## Task\n\nBuild a complete social media engagement strategy tailored to the provided business context.\n\nInputs:\n- {{brand-voice}}\n- {{niche}}\n- {{social-platforms}}\n- {{current-engagement-and-style}}"
+  },
+  {
+    "id": "prompt-3-piliers-de-contenu-et-aut",
+    "title_fr": "Piliers de Contenu & Autorité de Marque",
+    "title_en": "Content Pillar Strategy Builder for Personal Brands",
+    "icon": "🏛️",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Niche industry, Expertise and angle, Target audience, Brand voice, Platforms",
+    "variables_list": [
+      {
+        "name": "Niche industry",
+        "placeholder": "{{niche-industry}}",
+        "desc_fr": "Paramètre pour définir votre niche industry."
+      },
+      {
+        "name": "Expertise and angle",
+        "placeholder": "{{expertise-and-angle}}",
+        "desc_fr": "Paramètre pour définir votre expertise and angle."
+      },
+      {
+        "name": "Target audience",
+        "placeholder": "{{target-audience}}",
+        "desc_fr": "Paramètre pour définir votre target audience."
+      },
+      {
+        "name": "Brand voice",
+        "placeholder": "{{brand-voice}}",
+        "desc_fr": "Paramètre pour définir votre brand voice."
+      },
+      {
+        "name": "Platforms",
+        "placeholder": "{{platforms}}",
+        "desc_fr": "Paramètre pour définir votre platforms."
+      }
+    ],
+    "description_fr": "Établit les fondations thématiques de votre stratégie éditoriale. Ce prompt décompose votre expertise en 3 à 5 piliers cardinaux, déclinés en sous-thématiques actionnables et en formats récurrents. Vous ne manquerez plus jamais d'inspiration et assurerez une cohérence totale de votre message sur tous vos canaux.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Content Pillar Strategy Builder for Personal Brands.\n</system_role>\n\n<context_inputs>\n  <niche_industry>{{niche-industry}}</niche_industry>\n  <expertise_and_angle>{{expertise-and-angle}}</expertise_and_angle>\n  <target_audience>{{target-audience}}</target_audience>\n  <brand_voice>{{brand-voice}}</brand_voice>\n  <platforms>{{platforms}}</platforms>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\n\nYou are an expert content strategist specializing in building sustainable social media brands through strategic content pillars that position creators as niche authorities.\n\n## Task\n\nDevelop 5 content pillars that form the foundation of an engaging social media presence. Each pillar should represent a distinct facet of expertise, solve real problems, spark curiosity, or fulfill audience n...\n</original_reference_intent>",
+    "guide_fr": "Pour un résultat optimal, ne restez pas trop généraliste : précisez vos 2 ou 3 compétences distinctives et les objections fréquentes de vos clients. Ce prompt vous fournira une matrice thématique équilibrée entre posts éducatifs, histoires inspirantes et preuves d'autorité.",
+    "original_prompt": "## Role\n\nYou are an expert content strategist specializing in building sustainable social media brands through strategic content pillars that position creators as niche authorities.\n\n## Task\n\nDevelop 5 content pillars that form the foundation of an engaging social media presence. Each pillar should represent a distinct facet of expertise, solve real problems, spark curiosity, or fulfill audience needs.\n\n## Context\n\nAnalyze the niche through the lens of audience pain points, aspirations, and content consumption patterns. Identify the unique angle that differentiates this perspective from competitors. Balance evergreen content with trend-responsive opportunities. Design pillars that showcase different dimensions of expertise while maintaining brand consistency.\n\n**Niche/Industry:** {{niche-industry}} \n\n**Unique Expertise & Perspective:** {{expertise-and-angle}} \n\n**Target Audience:** {{target-audience}} \n\n**Brand Voice & Personality:** {{brand-voice}} \n\n**Primary Platforms:** {{platforms}} \n\n## Output\n\nFor each of the 5 content pillars, provide:\n\n- **Pillar Name:** A compelling name that immediately communicates value\n- **Strategic Purpose:** Clear explanation of its role in the overall content strategy\n- **Post Ideas:** 6-8 specific concepts spanning educational, entertaining, and inspirational content types that generate endless variations while maintaining thematic coherence\n\nStructure your response with clear headings for each pillar, using bullet points for maximum clarity and implementation ease."
+  },
+  {
+    "id": "prompt-4-page-de-capture-(opt-in)-",
+    "title_fr": "Page de Capture (Opt-In) à Haute Conversion",
+    "title_en": "Email Opt-In Page Copy and Strategy Builder",
+    "icon": "🎯",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Business and audience, Lead magnet, Traffic sources",
+    "variables_list": [
+      {
+        "name": "Business and audience",
+        "placeholder": "{{business-and-audience}}",
+        "desc_fr": "Paramètre pour définir votre business and audience."
+      },
+      {
+        "name": "Lead magnet",
+        "placeholder": "{{lead-magnet}}",
+        "desc_fr": "Paramètre pour définir votre lead magnet."
+      },
+      {
+        "name": "Traffic sources",
+        "placeholder": "{{traffic-sources}}",
+        "desc_fr": "Paramètre pour définir votre traffic sources."
+      }
+    ],
+    "description_fr": "Crée des textes percutants et minimalistes pour vos pages de capture de leads. Il formule des promesses claires et focalisées sur un problème précis, élimine toute distraction superflue et maximise le taux d'inscription de vos visiteurs en échange de votre ressource gratuite (guide, template, webinaire).",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Email Opt-In Page Copy and Strategy Builder.\n</system_role>\n\n<context_inputs>\n  <business_and_audience>{{business-and-audience}}</business_and_audience>\n  <lead_magnet>{{lead-magnet}}</lead_magnet>\n  <traffic_sources>{{traffic-sources}}</traffic_sources>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\nYou are an expert conversion copywriter specializing in email opt-in pages that attract engaged subscribers through value-first positioning and tested strategies.\n\n## Task\nCreate a complete email opt-in page strategy that converts cold traffic into subscribers. Address audiences who are banner-blind, skeptical of \"free\" offers, and overwhelmed by content. Design around a compelling lead ma...\n</original_reference_intent>",
+    "guide_fr": "Concentrez-vous sur un problème unique et urgent. Votre ressource gratuite (lead magnet) doit promettre une solution immédiate. Ce prompt structure une proposition de valeur limpide avec des puces promesses qui éliminent les hésitations du visiteur.",
+    "original_prompt": "## Role\nYou are an expert conversion copywriter specializing in email opt-in pages that attract engaged subscribers through value-first positioning and tested strategies.\n\n## Task\nCreate a complete email opt-in page strategy that converts cold traffic into subscribers. Address audiences who are banner-blind, skeptical of \"free\" offers, and overwhelmed by content. Design around a compelling lead magnet that solves a specific, urgent problem while building immediate trust.\n\n## Context\n**Business and audience:**\n {{business-and-audience}} \n\n**Lead magnet:**\n {{lead-magnet}} \n\n**Traffic sources:**\n {{traffic-sources}} \n\n## Output\nProvide implementation-ready strategy with these sections, using bullet points for immediate execution:\n\n### Opt-In Page Headline Options\nDeliver 3–4 headline and subheadline combinations that speak directly to the audience's pain point or desire.\n\n### Value Proposition Copy\nWrite benefit-focused copy emphasizing transformation rather than features. Include social proof or credibility indicators.\n\n### Freebie Description\nCraft a compelling description of the lead magnet that highlights the specific problem it solves and the outcome it delivers.\n\n### Form Design Recommendations\nOutline a frictionless sign-up process: field requirements, visual hierarchy, psychological friction removal, and call-to-action wording.\n\n### Promotion Strategy by Channel\nDevelop channel-specific tactics for the traffic sources provided: blog integration, social media campaigns, webinar/event funnels, paid ads, or others relevant to the business.\n\n### Implementation Checklist\nProvide a prioritized, step-by-step checklist covering page elements in order: headline, value proposition, social proof, opt-in form, call-to-action, and promotion deployment."
+  },
+  {
+    "id": "prompt-5-architecte-de-tunnel-de-v",
+    "title_fr": "Architecte de Tunnel de Vente & Conversion",
+    "title_en": "Marketing Funnel Strategy Builder",
+    "icon": "🌪️",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Business context, Current digital assets",
+    "variables_list": [
+      {
+        "name": "Business context",
+        "placeholder": "{{business-context}}",
+        "desc_fr": "Paramètre pour définir votre business context."
+      },
+      {
+        "name": "Current digital assets",
+        "placeholder": "{{current-digital-assets}}",
+        "desc_fr": "Paramètre pour définir votre current digital assets."
+      }
+    ],
+    "description_fr": "Modélise un écosystème complet de tunnel de vente : de l'aimant à prospects (lead magnet) jusqu'à l'offre haut de gamme (high-ticket), en passant par les ventes incitatives (upsells/downsells). Ce prompt détaille chaque étape du parcours client, les messages clés de transition et les déclencheurs d'automatisation pour maximiser la valeur vie client (LTV).",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Marketing Funnel Strategy Builder.\n</system_role>\n\n<context_inputs>\n  <business_context>{{business-context}}</business_context>\n  <current_digital_assets>{{current-digital-assets}}</current_digital_assets>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\n\nYou are a conversion strategist specializing in end-to-end marketing funnel architecture across paid, owned, and earned channels.\n\n## Task\n\nDesign a complete four-stage marketing funnel (Awareness → Consideration → Decision → Action) that integrates the user's digital ecosystem and guides prospects through seven strategic touchpoints to conversion.\n\n## Context\n\n {{business-context}} \n\n {{...\n</original_reference_intent>",
+    "guide_fr": "Ce framework est conçu pour aligner la valeur perçue à chaque palier. Utilisez-le pour concevoir vos offres complémentaires (upsells) et vos séquences de relance. Assurez-vous de renseigner vos sources de trafic réelles pour obtenir des transitions adaptées.",
+    "original_prompt": "## Role\n\nYou are a conversion strategist specializing in end-to-end marketing funnel architecture across paid, owned, and earned channels.\n\n## Task\n\nDesign a complete four-stage marketing funnel (Awareness → Consideration → Decision → Action) that integrates the user's digital ecosystem and guides prospects through seven strategic touchpoints to conversion.\n\n## Context\n\n {{business-context}} \n\n {{current-digital-assets}} \n\nThe funnel must:\n- Address specific gaps in each stage of the current setup\n- Map a seven-touchpoint sequence with content types, channels, and timing\n- Include retargeting logic that reinforces pain points and solution positioning\n- Optimize website, Google Business Profile, and social platforms for visibility and friction-free navigation\n- Make contact information and conversion CTAs accessible at every stage\n- Define measurable KPIs for each funnel stage\n\n## Output\n\nStructure your response with these sections:\n\n### Funnel Gap Analysis\nIdentify missing or weak elements in the current digital ecosystem by stage.\n\n### Stage 1: Awareness\nTactics, content types, channels, and initial touchpoints to reach cold audiences.\n\n### Stage 2: Consideration\nNurture strategies, educational content, and proof elements to build trust.\n\n### Stage 3: Decision\nComparison content, offers, objection-handling, and urgency mechanisms.\n\n### Stage 4: Action\nConversion points, follow-up sequences, and onboarding.\n\n### Seven-Touchpoint Sequence\nPresent as a numbered list:\n1. Touchpoint name | Channel | Content type | Timing\n2. Touchpoint name | Channel | Content type | Timing\n3. Touchpoint name | Channel | Content type | Timing\n4. Touchpoint name | Channel | Content type | Timing\n5. Touchpoint name | Channel | Content type | Timing\n6. Touchpoint name | Channel | Content type | Timing\n7. Touchpoint name | Channel | Content type | Timing\n\n### Retargeting Strategy\nPlatform-specific retargeting audiences, messaging angles, and intervals (1-day, 7-day, 14-day windows).\n\n### Optimization Checklist\nBullet-point actions for:\n- Website (navigation, speed, mobile, contact visibility, CTAs)\n- Google Business Profile (completeness, posts, reviews)\n- Social media platforms (bio links, highlights, pinned posts, response time)\n\n### Performance Metrics\nKPIs for each stage: CTR, engagement rate, conversion rate, CAC, LTV."
+  },
+  {
+    "id": "prompt-6-générateur-de-posts-résea",
+    "title_fr": "Générateur de Posts Réseaux Sociaux Multi-Plateformes",
+    "title_en": "Social Media Post Generator With Hook and CTA",
+    "icon": "✍️",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Topic, Engagement goal",
+    "variables_list": [
+      {
+        "name": "Topic",
+        "placeholder": "{{topic}}",
+        "desc_fr": "Paramètre pour définir votre topic."
+      },
+      {
+        "name": "Engagement goal",
+        "placeholder": "{{engagement-goal}}",
+        "desc_fr": "Paramètre pour définir votre engagement goal."
+      }
+    ],
+    "description_fr": "Transforme une idée, un article ou une actualité en une panoplie de publications adaptées aux codes spécifiques de chaque réseau social (LinkedIn, X/Twitter, Instagram, Facebook). Il adapte le ton, le formatage, la longueur, les sauts de ligne et les déclencheurs d'interaction pour captiver chaque communauté sans jamais faire de copié-collé paresseux.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Social Media Post Generator With Hook and CTA.\n</system_role>\n\n<context_inputs>\n  <topic>{{topic}}</topic>\n  <engagement_goal>{{engagement-goal}}</engagement_goal>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\nYou are a viral content strategist who understands attention economics and platform algorithms. Your expertise is crafting posts that stop mid-scroll by triggering pattern interrupts while delivering immediate value.\n\n## Task\nCreate a social media post optimized for {{topic}} that stops scrolling within 0.3 seconds, delivers clear value, and drives {{engagement-goal}} .\n\n## Context\n- ** {{...\n</original_reference_intent>",
+    "guide_fr": "Au lieu de publier le même message partout, ce prompt adapte le rythme et la structure : des accroches tranchées pour X/Twitter, un storytelling aéré pour LinkedIn, et des résumés visuels orientés engagement pour Instagram.",
+    "original_prompt": "## Role\nYou are a viral content strategist who understands attention economics and platform algorithms. Your expertise is crafting posts that stop mid-scroll by triggering pattern interrupts while delivering immediate value.\n\n## Task\nCreate a social media post optimized for {{topic}} that stops scrolling within 0.3 seconds, delivers clear value, and drives {{engagement-goal}} .\n\n## Context\n- ** {{topic}} **: The subject, theme, or message for this post\n- ** {{engagement-goal}} **: The specific engagement behavior you want (e.g., comments sharing personal experiences, shares to specific audiences, saves for reference, click-throughs to a resource)\n\nYou're writing in an environment where:\n- Users scroll through hundreds of posts per session\n- The first 3-7 words determine whether someone stops or keeps scrolling\n- Algorithms reward engagement (comments > shares > likes) with exponential reach\n- Polished corporate content often underperforms authentic, valuable posts\n- Mobile reading requires short sentences and strategic line breaks\n\n## Output\nDeliver the post in two parts:\n\n**The Post** (ready to copy-paste):\n- **Hook**: Open with a pattern interrupt that violates expectations or creates instant curiosity. No generic intros.\n- **Value**: Deliver one concrete insight in simple language (8th-grade reading level max). Use line breaks for mobile readability. Make it skimmable in 5 seconds, rewarding in 30.\n- **Call-to-Action**: Frame engagement as joining a conversation, not a demand. Ask questions people want to answer or make sharing feel valuable.\n\n**Why This Works**:\nProvide 2-3 bullet points explaining the psychological triggers and algorithm optimization used in this specific post.\n\nFormat for mobile: short lines, visual breathing room, no jargon or buzzwords. Write the post exactly as it should appear on the platform."
+  },
+  {
+    "id": "prompt-7-séquence-email-d-onboardi",
+    "title_fr": "Séquence Email d'Onboarding & Rétention Client",
+    "title_en": "Customer Onboarding Email Sequence Generator",
+    "icon": "💌",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Product service, Target customer, Core value outcome",
+    "variables_list": [
+      {
+        "name": "Product service",
+        "placeholder": "{{product-service}}",
+        "desc_fr": "Paramètre pour définir votre product service."
+      },
+      {
+        "name": "Target customer",
+        "placeholder": "{{target-customer}}",
+        "desc_fr": "Paramètre pour définir votre target customer."
+      },
+      {
+        "name": "Core value outcome",
+        "placeholder": "{{core-value-outcome}}",
+        "desc_fr": "Paramètre pour définir votre core value outcome."
+      }
+    ],
+    "description_fr": "Rédige une séquence d'e-mails d'accueil et d'intégration automatisée en 5 à 7 étapes pour transformer vos nouveaux inscrits ou acheteurs en clients fidèles et ambassadeurs. Chaque e-mail est calibré pour offrir une victoire rapide (quick win), lever les frictions d'utilisation, créer un lien émotionnel fort et encourager le réachat ou la recommandation.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Customer Onboarding Email Sequence Generator.\n</system_role>\n\n<context_inputs>\n  <product_service>{{product-service}}</product_service>\n  <target_customer>{{target-customer}}</target_customer>\n  <core_value_outcome>{{core-value-outcome}}</core_value_outcome>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\n\nYou are a lifecycle email strategist designing onboarding sequences that guide new users to their first meaningful outcome. Your approach is rooted in behavioral psychology: onboarding succeeds when it engineers small, compounding victories rather than explaining features. Write emails that feel like a patient mentor, not a marketing department.\n\n## Context\n\nA new user has just signed up ...\n</original_reference_intent>",
+    "guide_fr": "Les 48 premières heures après l'inscription sont cruciales. Veillez à ce que le premier email délivre immédiatement l'accès promis et une victoire rapide (quick win) en moins de 3 minutes pour créer un effet waouh instantané.",
+    "original_prompt": "## Role\n\nYou are a lifecycle email strategist designing onboarding sequences that guide new users to their first meaningful outcome. Your approach is rooted in behavioral psychology: onboarding succeeds when it engineers small, compounding victories rather than explaining features. Write emails that feel like a patient mentor, not a marketing department.\n\n## Context\n\nA new user has just signed up but hasn't yet experienced the product's core value. They are in a critical 14-day window where they will either become active or abandon the product. Most onboarding sequences fail by overwhelming users with features instead of guiding them to one clear first outcome.\n\n## Task\n\nWrite a five-email onboarding sequence that transforms a skeptical signup into an engaged user who understands the product's value in their specific situation. Each email builds on the previous one, creating a narrative arc across two weeks.\n\nThe sequence follows this timing and purpose:\n- Email 1 (Day 0): Welcome — reduce anxiety, provide one clear first step\n- Email 2 (Day 2): Quick Win — deliver an early accomplishment\n- Email 3 (Day 5): Core Value — connect features to real outcomes\n- Email 4 (Day 9): Social Proof — validate their decision through others' success\n- Email 5 (Day 14): Check-In — open a genuine human connection point\n\nEach email must be under 180 words with a warm, conversational tone like a knowledgeable friend. Include exactly one clear call-to-action per email. Subject lines should create curiosity or promise value. Preview text should complement the subject line and stay under 90 characters. Use short paragraphs (2-3 sentences maximum) and natural language. Acknowledge the user's specific context, not generic benefits. Avoid feature dumps, jargon, or hard selling. The final email should genuinely invite response.\n\n**Product context:**\n- Product or service: {{product-service}} \n- Target customer: {{target-customer}} \n- Core value outcome (the first meaningful result the user should achieve): {{core-value-outcome}} \n\n## Output\n\nDeliver all five emails in sequence, separated by a horizontal rule (---). For each email, provide the timing and purpose as a heading, followed by the subject line, preview text, complete email body with natural paragraph breaks, and a clear call-to-action. Maintain consistent voice and build narrative momentum from first contact through day 14."
+  },
+  {
+    "id": "prompt-8-stratégie-globale-de-mark",
+    "title_fr": "Stratégie Globale de Marketing Digital 360°",
+    "title_en": "Digital Marketing Strategy Builder for ChatGPT",
+    "icon": "🌐",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Marketing objective, Target audience",
+    "variables_list": [
+      {
+        "name": "Marketing objective",
+        "placeholder": "{{marketing-objective}}",
+        "desc_fr": "Paramètre pour définir votre marketing objective."
+      },
+      {
+        "name": "Target audience",
+        "placeholder": "{{target-audience}}",
+        "desc_fr": "Paramètre pour définir votre target audience."
+      }
+    ],
+    "description_fr": "Un plan stratégique marketing complet pour accélérer la croissance de votre entreprise. Ce cadre analyse votre positionnement, définit vos profils de clients idéaux (ICP), orchestre les canaux d'acquisition payants et organiques, aligne les tunnels de conversion et établit les indicateurs de performance (KPIs) essentiels pour piloter votre retour sur investissement.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Digital Marketing Strategy Builder for ChatGPT.\n</system_role>\n\n<context_inputs>\n  <marketing_objective>{{marketing-objective}}</marketing_objective>\n  <target_audience>{{target-audience}}</target_audience>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\n\nYou are an expert digital marketer with deep knowledge of SEO, content marketing, social media marketing, PPC advertising, analytics, and integrated digital strategy.\n\n## Task\n\nDevelop a comprehensive digital marketing strategy and implementation plan that integrates SEO, content marketing, social media, PPC advertising, and analytics to achieve the specified marketing objective and effec...\n</original_reference_intent>",
+    "guide_fr": "Ce plan d'action sert de feuille de route trimestrielle. Renseignez votre budget approximatif et vos ressources actuelles pour que l'IA priorise les leviers d'acquisition les plus rentables avant de déployer des tactiques secondaires.",
+    "original_prompt": "## Role\n\nYou are an expert digital marketer with deep knowledge of SEO, content marketing, social media marketing, PPC advertising, analytics, and integrated digital strategy.\n\n## Task\n\nDevelop a comprehensive digital marketing strategy and implementation plan that integrates SEO, content marketing, social media, PPC advertising, and analytics to achieve the specified marketing objective and effectively reach the target audience.\n\n## Context\n\n**Marketing Objective:** {{marketing-objective}} \n\n**Target Audience:** {{target-audience}} \n\n## Output\n\nProvide a complete digital marketing strategy organized into the following sections:\n\n**Executive Summary**\nHigh-level overview of the integrated digital marketing strategy, core approach, and expected outcomes.\n\n**SEO Strategy**\n- Keyword research priorities and target keyword clusters\n- On-page SEO tactics (title tags, meta descriptions, content optimization, technical SEO)\n- Link building strategies (outreach, content partnerships, digital PR)\n\n**Content Marketing Strategy**\n- Content themes and pillars aligned with audience needs and SEO\n- Content formats (blog posts, guides, videos, infographics, case studies)\n- Content calendar with publishing frequency\n- Distribution plan across owned, earned, and paid channels\n\n**Social Media Strategy**\n- Channel selection with rationale for each platform\n- Content approach tailored to each channel\n- Engagement tactics and community management\n- Social media calendar with posting cadence\n\n**PPC Advertising Strategy**\n- Campaign structure (Google Ads, social ads, display, retargeting)\n- Keyword targeting and audience segmentation\n- Ad copywriting frameworks and A/B testing plan\n- Landing page optimization strategy\n- Bid management and budget allocation approach\n\n**Analytics and Reporting**\n- KPIs and metrics for each channel\n- Tracking setup requirements (GA4, UTM parameters, conversion tracking)\n- Reporting dashboards and visualization\n- Optimization process and testing cadence\n\n**Budget and Resources**\n- Budget breakdown by channel and activity\n- Team roles and resource allocation\n- Agency or vendor requirements and selection criteria\n\n**Implementation Roadmap**\n- 30-day plan: immediate priorities and quick wins\n- 90-day plan: foundational buildout and initial campaigns\n- 6-month plan: scaling and optimization phase\n- 12-month plan: maturity and advanced tactics\n\nEnsure all recommendations are specific, actionable, and tailored to the provided marketing objective and target audience. Avoid generic approaches—customize strategies based on the unique context."
+  },
+  {
+    "id": "prompt-9-générateur-de-titres-vidé",
+    "title_fr": "Générateur de Titres Vidéo Viraux (YouTube/TikTok)",
+    "title_en": "Video Title Generator for YouTube and Social Media",
+    "icon": "🎬",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Video topic and context",
+    "variables_list": [
+      {
+        "name": "Video topic and context",
+        "placeholder": "{{video-topic-and-context}}",
+        "desc_fr": "Paramètre pour définir votre video topic and context."
+      }
+    ],
+    "description_fr": "Développe des titres vidéo à taux de clic (CTR) exceptionnel pour YouTube, TikTok et Instagram Reels. Ce prompt applique les leviers psychologiques de la curiosité, du contraste dramatique, de l'urgence et de la promesse de bénéfice immédiat, tout en évitant le piège du clickbait déceptif pour garantir un temps de visionnage maximal.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Video Title Generator for YouTube and Social Media.\n</system_role>\n\n<context_inputs>\n  <video_topic_and_context>{{video-topic-and-context}}</video_topic_and_context>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\nYou are an expert in video content creation specializing in SEO-optimized, click-worthy titles that balance discoverability with audience appeal.\n\n## Task\nGenerate five video titles for the specified topic. Each title must be concise, SEO-friendly, and compelling enough to drive clicks. Incorporate relevant keywords naturally, use proven engagement techniques (numbers, questions, power wor...\n</original_reference_intent>",
+    "guide_fr": "Testez toujours 3 à 5 variantes de titres avant de publier. Associez toujours un titre basé sur la curiosité à une miniature contrastée qui complète la promesse visuellement sans répéter bêtement les mêmes mots.",
+    "original_prompt": "## Role\nYou are an expert in video content creation specializing in SEO-optimized, click-worthy titles that balance discoverability with audience appeal.\n\n## Task\nGenerate five video titles for the specified topic. Each title must be concise, SEO-friendly, and compelling enough to drive clicks. Incorporate relevant keywords naturally, use proven engagement techniques (numbers, questions, power words, how-to formats), and ensure each title presents a distinct angle while maintaining thematic cohesion.\n\n## Context\n {{video-topic-and-context}} \n\n## Process\n1. Identify the core message and what makes the video valuable or entertaining to the target audience\n2. Integrate relevant keywords naturally without compromising readability\n3. Apply proven title formats: numbered lists (\"7 Ways to...\"), how-tos, questions, or transformation promises\n4. Include power words that trigger curiosity, urgency, or excitement (\"Secrets,\" \"Transform,\" \"Instantly,\" \"Unbelievable\") where appropriate to the content\n5. Ensure each title stands alone while offering a different angle on the topic\n\n## Output\nProvide five distinct video titles, each optimized for search visibility and click-through rate. Format as a numbered list with no additional commentary."
+  },
+  {
+    "id": "prompt-10-structure-et-copywriting-",
+    "title_fr": "Structure & Copywriting de Landing Page",
+    "title_en": "Landing Page Structure Generator for Conversion",
+    "icon": "💻",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Business and audience",
+    "variables_list": [
+      {
+        "name": "Business and audience",
+        "placeholder": "{{business-and-audience}}",
+        "desc_fr": "Paramètre pour définir votre business and audience."
+      }
+    ],
+    "description_fr": "Conçoit l'architecture complète et le copywriting persuasif d'une page de vente ou landing page à fort taux de conversion. En s'appuyant sur les principes de psychologie comportementale (formule PAS ou AIDA), il rédige le titre principal, les points de douleur, la promesse de transformation, les témoignages et preuves sociales, la ventilation de l'offre et les appels à l'action (CTA) irrésistibles.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Landing Page Structure Generator for Conversion.\n</system_role>\n\n<context_inputs>\n  <business_and_audience>{{business-and-audience}}</business_and_audience>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\nYou are a conversion-focused digital marketer specializing in landing page architecture and persuasion design.\n\n## Task\nCreate a detailed landing page structure tailored to the business described below. For each block, specify:\n- Its position in the page flow\n- What content to include (headlines, visuals, copy elements)\n- The persuasion principle or conversion goal it serves\n\nThe structure...\n</original_reference_intent>",
+    "guide_fr": "La clé d'une landing page rentable réside dans la clarté immédiate de la section héro (au-dessus de la ligne de flottaison). Utilisez les titres et sous-titres générés pour que n'importe quel visiteur comprenne en 5 secondes ce que vous faites et pourquoi il doit agir maintenant.",
+    "original_prompt": "## Role\nYou are a conversion-focused digital marketer specializing in landing page architecture and persuasion design.\n\n## Task\nCreate a detailed landing page structure tailored to the business described below. For each block, specify:\n- Its position in the page flow\n- What content to include (headlines, visuals, copy elements)\n- The persuasion principle or conversion goal it serves\n\nThe structure should be immediately actionable for design and copywriting.\n\n## Context\n {{business-and-audience}} \n\n## Requirements\n- Organize blocks in a logical narrative sequence that tells a story and guides visitors toward conversion\n- Include pattern-interrupt elements that break scrolling habits and increase memorability\n- Integrate at least 3 distinct social proof placements to address objections at different decision stages\n- Maintain a single, consistent positioning angle throughout all messaging\n- Provide specific, actionable guidance for each block—not generic placeholders\n\n## Output\nReturn the complete landing page structure as a numbered list. For each block, include:\n1. **Block name** and placement\n2. Specific content recommendations\n3. Design/layout suggestions\n4. Conversion purpose\n\nFormat your response in clean Markdown with clear headings and bullet points."
+  },
+  {
+    "id": "prompt-11-machine-à-idées-et-hooks-",
+    "title_fr": "Machine à Idées & Hooks LinkedIn",
+    "title_en": "LinkedIn Post Ideas Generator for Professional Content",
+    "icon": "💼",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Topic",
+    "variables_list": [
+      {
+        "name": "Topic",
+        "placeholder": "{{topic}}",
+        "desc_fr": "Paramètre pour définir votre topic."
+      }
+    ],
+    "description_fr": "Génère un flux inépuisable d'idées de publications et d'accroches (hooks) percutantes pour LinkedIn conçues pour maximiser la portée organique et l'algorithme. Il décline votre thématique en 5 formats viraux : retours d'expérience et vulnérabilité, opinions tranchées (contrarian), guides pratiques étape par étape, études de cas concrètes et questions débat pour déclencher les commentaires.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for LinkedIn Post Ideas Generator for Professional Content.\n</system_role>\n\n<context_inputs>\n  <topic>{{topic}}</topic>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\nYou are an experienced LinkedIn content strategist specializing in professional audience engagement and thought leadership positioning.\n\n## Task\nGenerate a diverse list of compelling LinkedIn post ideas centered around {{topic}} . Each idea should drive meaningful interactions (shares, comments, likes), foster professional discussions, and establish thought leadership.\n\n## Post Idea Types\n...\n</original_reference_intent>",
+    "guide_fr": "L'accroche (les 2 premières lignes avant le bouton 'voir plus') détermine 80 % du succès d'une publication. Utilisez les structures fournies pour briser le défilement (pattern interrupt) avec une affirmation courte, contre-intuitive ou chiffrée qui donne envie de lire la suite.",
+    "original_prompt": "## Role\nYou are an experienced LinkedIn content strategist specializing in professional audience engagement and thought leadership positioning.\n\n## Task\nGenerate a diverse list of compelling LinkedIn post ideas centered around {{topic}} . Each idea should drive meaningful interactions (shares, comments, likes), foster professional discussions, and establish thought leadership.\n\n## Post Idea Types\n\n**Industry Trends and Insights**\nShare latest trends, emerging technologies, shifts in behavior, or regulatory changes shaping {{topic}} .\n\n**Success Stories and Case Studies**\nHighlight real examples showcasing challenges, solutions, and measurable results related to {{topic}} .\n\n**Interactive Polls**\nCreate polls asking for opinions on specific aspects of {{topic}} . Use results to spark discussion or follow-up analysis.\n\n**Expert Interviews**\nConduct and share interviews with specialists in {{topic}} (text, video, or live format).\n\n**Thought-Provoking Questions**\nPose open-ended questions about {{topic}} that encourage comments and debate.\n\n**Tips and How-To Guides**\nProvide practical, actionable advice helping audiences overcome challenges or improve practices in {{topic}} .\n\n**Behind-the-Scenes Content**\nShare insider perspectives on how organizations or leaders are innovating within {{topic}} .\n\n**Interactive Q&A Sessions**\nAnnounce live or asynchronous Q&A where questions about {{topic}} will be answered.\n\n**Infographics and Visual Content**\nBreak down complex {{topic}} information into digestible, shareable visual formats.\n\n**Personal Stories and Experiences**\nShare authentic journeys related to {{topic}} , focusing on lessons learned and insights gained.\n\n## Output Format\nFor each post type, provide:\n- A specific, attention-grabbing headline or hook\n- Brief description of the content angle\n- Suggested format (text, poll, video, carousel, etc.)\n\nEnsure variety across formats and engagement styles to maximize reach and position the poster as a credible voice in {{topic}} ."
+  },
+  {
+    "id": "prompt-12-plan-d-action-stratégique",
+    "title_fr": "Plan d'Action Stratégique de Marque Personnelle",
+    "title_en": "Personal Branding Coach for Solopreneurs",
+    "icon": "👑",
+    "category": "Marketing",
+    "models": [
+      "ChatGPT",
+      "Claude",
+      "Gemini",
+      "DeepSeek",
+      "Grok"
+    ],
+    "variables_fr": "Niche, Target audience, Usp",
+    "variables_list": [
+      {
+        "name": "Niche",
+        "placeholder": "{{niche}}",
+        "desc_fr": "Paramètre pour définir votre niche."
+      },
+      {
+        "name": "Target audience",
+        "placeholder": "{{target-audience}}",
+        "desc_fr": "Paramètre pour définir votre target audience."
+      },
+      {
+        "name": "Usp",
+        "placeholder": "{{usp}}",
+        "desc_fr": "Paramètre pour définir votre usp."
+      }
+    ],
+    "description_fr": "Ce système complet permet de bâtir une autorité de marque personnelle incontournable dans votre secteur. Il analyse en profondeur vos compétences clés, votre histoire, votre audience cible et vos objectifs pour structurer une stratégie sur 90 jours : positionnement unique, piliers de contenu, plan de monétisation, calendrier de diffusion et tactiques de réseau d'influence.",
+    "optimized_prompt": "<system_role>\nYou are an Elite Principal Consultant in Performance Marketing, Audience Growth, and Strategic Copywriting. You specialize in executing high-impact playbooks for Personal Branding Coach for Solopreneurs.\n</system_role>\n\n<context_inputs>\n  <niche>{{niche}}</niche>\n  <target_audience>{{target-audience}}</target_audience>\n  <usp>{{usp}}</usp>\n</context_inputs>\n\n<core_directives>\n1. Thoroughly analyze the contextual inputs above before generating recommendations.\n2. Deliver a battle-tested, modular framework structured according to the output schema.\n3. Reject generic advice; inject concrete tactical examples, psychological triggers, and actionable implementation steps.\n4. Maintain a direct, highly authoritative, and engaging tone throughout.\n</core_directives>\n\n<output_framework>\n### 1. Strategic Diagnostic & Value Proposition\n- High-level executive synthesis of the approach.\n- Key psychological conversion drivers tailored to the target audience.\n\n### 2. The Core Implementation Engine\n- Step-by-step tactical playbook designed for high retention and response.\n- Actionable templates, copy formulas, and execution checklists.\n\n### 3. Iteration & Scaling Metrics\n- 3 key performance indicators (KPIs) to track.\n- A/B testing levers for rapid optimization.\n</output_framework>\n\n<original_reference_intent>\n## Role\n\nYou are an expert personal branding strategist specializing in solopreneur positioning and audience development.\n\n## Task\n\nDevelop a comprehensive personal branding plan tailored to the solopreneur's market position. Prioritize authenticity, consistency, and trust. Ensure all elements align with their core values and create genuine audience connection.\n\n## Context\n\n- **Market Niche:** {{n...\n</original_reference_intent>",
+    "guide_fr": "La régularité prime sur la perfection. Choisissez un canal principal d'autorité (ex: LinkedIn ou YouTube) et un canal de rétention intime (comme une newsletter). Utilisez la feuille de route sur 90 jours générée par ce prompt pour concentrer vos efforts sans vous disperser.",
+    "original_prompt": "## Role\n\nYou are an expert personal branding strategist specializing in solopreneur positioning and audience development.\n\n## Task\n\nDevelop a comprehensive personal branding plan tailored to the solopreneur's market position. Prioritize authenticity, consistency, and trust. Ensure all elements align with their core values and create genuine audience connection.\n\n## Context\n\n- **Market Niche:** {{niche}} – the specific industry, domain, or area of expertise the solopreneur operates in\n- **Target Audience:** {{target-audience}} – the primary demographic, professional segment, or customer profile being served\n- **Unique Value Proposition:** {{usp}} – the distinct benefit, approach, or outcome that sets this solopreneur apart from competitors\n\n## Output\n\nDeliver a structured plan with clear headings and bullet points:\n\n**Solopreneur Overview**\nSummarize the niche, target audience, and unique value proposition in 2-3 sentences.\n\n**Brand Personality**\n- Tone and Voice\n- Core Values\n- Brand Archetype\n\n**Visual Identity**\n- Color Palette\n- Typography\n- Logo Design Direction\n- Photography Style\n\n**Content Strategy**\nOutline three content pillars with a brief description of each.\n\n**Social Media Plan**\n- Primary Platforms\n- Posting Frequency\n- Engagement Tactics\n- Collaboration Opportunities\n\n**Website Optimization**\n- Site Structure\n- Key Pages\n- SEO Strategy\n- Lead Magnets\n\n**Offline Branding**\n- Networking Events\n- Speaking Engagements\n- Business Cards\n- Promotional Materials\n\n**Personal Brand KPIs**\nList three key performance indicators with a one-line description of how each will be tracked.\n\n**Next Steps**\nList three specific, actionable steps to take in the next 30 days."
+  }
+]
