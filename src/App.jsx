@@ -24,15 +24,15 @@ export default function App() {
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-  // Categories list with icons and counts
+  // Categories list with icons and dynamic counts
   const categories = [
     { id: 'Tous', label: 'Toutes les catégories', icon: Layers, count: promptsData.length },
-    { id: 'Marketing', label: 'Marketing & Croissance', icon: Megaphone, count: promptsData.filter(p => p.category === 'Marketing').length },
-    { id: 'SEO', label: 'SEO & Visibilité', icon: Globe, count: 0 },
-    { id: 'Coding', label: 'Code & Développement', icon: Code2, count: 0 },
-    { id: 'Design', label: 'Design & Visuels', icon: Palette, count: 0 },
-    { id: 'Sales', label: 'Vente & Conversion', icon: ShoppingBag, count: 0 },
-    { id: 'Copywriting', label: 'Copywriting & Écriture', icon: PenTool, count: 0 },
+    { id: 'Marketing', label: 'Marketing & Croissance', icon: Megaphone, count: promptsData.filter(p => p.category?.toLowerCase() === 'marketing').length },
+    { id: 'Coding', label: 'Code & Développement', icon: Code2, count: promptsData.filter(p => p.category?.toLowerCase() === 'coding').length },
+    { id: 'Design', label: 'Design & Visuels', icon: Palette, count: promptsData.filter(p => p.category?.toLowerCase() === 'design').length },
+    { id: 'Sales', label: 'Vente & Conversion', icon: ShoppingBag, count: promptsData.filter(p => p.category?.toLowerCase() === 'sales').length },
+    { id: 'Copywriting', label: 'Copywriting & Écriture', icon: PenTool, count: promptsData.filter(p => p.category?.toLowerCase() === 'copywriting').length },
+    { id: 'SEO', label: 'SEO & Visibilité', icon: Globe, count: promptsData.filter(p => p.category?.toLowerCase() === 'seo').length },
   ];
 
   const modelsList = ['Tous', 'ChatGPT', 'Claude', 'Gemini', 'DeepSeek'];
