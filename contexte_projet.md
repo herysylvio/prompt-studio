@@ -1,7 +1,7 @@
 # Contexte de Projet — Prompt Studio
 
 > **Dossier racine** : `C:\Users\sylvi\DEV\PROMPT STUDIO`  
-> **Dernière mise à jour** : 29 Septembre 2026  
+> **Dernière mise à jour** : 30 Septembre 2026  
 > **Statut** : En production (Vercel) & synchronisé avec Notion
 
 ---
@@ -45,15 +45,15 @@
 
 ---
 
-## 4. État de la Bibliothèque (27 Prompts Actifs)
+## 4. État de la Bibliothèque (47 Prompts Actifs)
 
-La bibliothèque compte actuellement 27 prompts opérationnels répartis dans 6 thématiques :
+La bibliothèque compte actuellement 47 prompts opérationnels répartis dans 6 thématiques :
 - **Marketing & Croissance** (12 prompts) : Landing pages, tunnels de vente, piliers de contenu, stratégie 360°, etc.
-- **Code & Développement** (3 prompts) : Architecte logiciel full-stack, débogueur systématique, pipeline qualité CI/CD.
-- **Design & Visuels** (3 prompts) : Publicités de luxe & parfums, portraits cinématographiques, mockups packaging photoréalistes.
-- **Vente & Conversion** (3 prompts) : Cold emailing B2B, scripts VSL haute conversion, diagnostic des risques de closing.
-- **Copywriting & Écriture** (3 prompts) : Clonage de style éditorial, polisseur littéraire, scripts vidéos courtes virales.
-- **SEO & Visibilité** (3 prompts) : Audit SEO On-Page, content gap analysis, rédacteur d'articles sémantiques.
+- **Code & Développement** (7 prompts) : Architecte logiciel full-stack, schémas de bases de données, convertisseur NL-to-SQL, décrypteur de code legacy, audit de sécurité OWASP, débogueur systématique, pipeline qualité CI/CD.
+- **Design & Visuels** (7 prompts) : Publicités de luxe & parfums, portraits cinématographiques, mockups packaging, logos minimalistes, shooting photo éditorial, illustrations flat design, architecture UI/UX de sites web.
+- **Vente & Conversion** (7 prompts) : Cold emailing B2B, scripts VSL, diagnostic des risques de closing, Sales Playbook, négociation commerciale, pitch deck investisseurs, traitement des objections.
+- **Copywriting & Écriture** (7 prompts) : Clonage de style éditorial, polisseur littéraire, scripts vidéos courtes virales, storytelling stratégique, newsletters haute rétention, copy publicitaire Meta/Google Ads, threads viraux.
+- **SEO & Visibilité** (7 prompts) : Audit SEO On-Page, content gap analysis, rédacteur d'articles sémantiques, chasseur de mots-clés, audit SEO local & Google Business Profile, stratégie SEO YouTube, humaniseur E-E-A-T.
 
 Les données de production sont stockées dans :
 `src/data/prompts.json`

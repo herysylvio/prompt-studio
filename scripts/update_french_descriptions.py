@@ -68,6 +68,65 @@ DESCRIPTIONS_FR = {
     "Analyseur de Contenu & Générateur d'Idées Dérivées": (
         "Déconstruit n'importe quel contenu textuel (style, structure, arguments clés, leviers d'engagement) "
         "et formule 3 nouveaux concepts de contenus originaux à fort impact sous des angles différenciants sans jamais plagier la source."
+    ),
+    "Architecte Logiciel Full-Stack & Microservices": (
+        "Génère du code prêt pour la production tout en imposant une intégrité architecturale stricte entre le frontend, le backend et les couches partagées. "
+        "Analyse l'impact structurel, déclare les dépendances exactes, applique le typage fort et définit les tests unitaires et d'intégration nécessaires."
+    ),
+    "Débogueur Systématique & Résolution d'Erreurs": (
+        "Applique la méthode scientifique au débogage logiciel pour résoudre les erreurs complexes sans tâtonner. "
+        "Traduit les messages d'erreur cryptiques, formule des hypothèses classées par probabilité, conçoit des tests d'isolation par recherche binaire et corrige la cause racine."
+    ),
+    "Pipeline de Qualité de Code & CI/CD Linter": (
+        "Configure un système complet d'automatisation de la qualité de code (linters, formateurs, hooks pre-commit Git et intégration IDE). "
+        "Élimine les débats de style dans les pull requests et bloque les erreurs avant l'exécution grâce aux conventions éprouvées de l'industrie."
+    ),
+    "Direction Artistique de Publicités Luxe & Flacons": (
+        "Conçoit des planches publicitaires éditoriales en 6 panneaux pour la haute parfumerie et les produits de luxe. "
+        "Maîtrise les reflets du verre, l'éclairage studio dramatique, les textures nobles (marbre noir, or brossé, soie) et la mise en scène sensorielle."
+    ),
+    "Photographie de Portrait Cinématographique": (
+        "Génère des portraits photographiques ultra-réalistes au rendu optique 85mm professionnel. "
+        "Orchestrez la lumière dorée (golden hour), la profondeur de champ réduite (bokeh cinéma), le grain naturel de la peau et l'émotion du sujet sans aucun artefact synthétique."
+    ),
+    "Générateur de Mockups & Packaging Produits Photoréalistes": (
+        "Transforme vos designs d'emballages en visualisations 3D photoréalistes haute définition (8K) en perspective 3/4. "
+        "Restitue fidèlement les pliages, le grain des matériaux, la typographie sans distorsion et l'éclairage commercial en boîte à lumière."
+    ),
+    "Générateur d'Emails de Prospection B2B (Cold Outreach)": (
+        "Crée des séquences de prospection à froid (email initial + 2 relances) conçues pour capter l'attention des décideurs en moins de 7 secondes. "
+        "Élimine le jargon commercial au profit d'accroches personnalisées, de preuves sociales subtiles et d'appels à l'action conversationnels."
+    ),
+    "Script de Vidéo de Vente Haute Conversion (VSL)": (
+        "Structure des scripts de vidéos de vente (Video Sales Letters) complets basés sur la psychologie de conversion directe. "
+        "Enchaîne l'accroche de rupture, l'amplification du problème, la révélation du mécanisme unique, l'empilement de valeur et l'inversion du risque."
+    ),
+    "Diagnostic des Risques d'Échec de Vente & Closing": (
+        "Analyse vos opportunités commerciales en cours pour détecter les signaux faibles d'échec avant qu'il ne soit trop tard. "
+        "Évalue les dynamiques de pouvoir chez le client, les objections cachées et livre un plan de sauvetage tactique pour sécuriser la signature."
+    ),
+    "Clonage d'ADN Éditorial & Voix de Marque": (
+        "Extrait l'empreinte linguistique exacte de vos textes (cadence des phrases, vocabulaire, figures de style, niveau d'autorité et transitions). "
+        "Fournit un profil stylistique réutilisable permettant à l'IA d'écrire exactement comme vous sans jamais sonner générique."
+    ),
+    "Polisseur Littéraire & Amplificateur de Clarté": (
+        "Sublime vos brouillons en éliminant les lourdeurs syntaxiques, la voix passive et les répétitions. "
+        "Renforce l'impact de chaque paragraphe tout en préservant scrupuleusement l'intention, la personnalité et la voix de l'auteur."
+    ),
+    "Scripts de Vidéos Courtes Virales (Reels, TikTok, Shorts)": (
+        "Conçoit des scripts de vidéos verticales calibrés pour la rétention algorithmique maximale. "
+        "Combine un hook visuel et sonore dans les 3 premières secondes, des ruptures de rythme (pattern interrupts) toutes les 5 secondes et une boucle finale favorisant le revisionnage."
+    ),
+    "Audit & Optimisation Référencement Naturel (SEO On-Page)": (
+        "Réalise un diagnostic SEO On-Page complet de vos pages web : alignement avec l'intention de recherche, hiérarchie des balises H1-H3, densité sémantique, optimisation des méta-données et recommandations de maillage interne."
+    ),
+    "Analyse des Gaps de Contenu & Opportunités SEO": (
+        "Compare votre couverture thématique à celle de vos concurrents pour révéler les angles morts à fort trafic. "
+        "Priorise les sujets à créer ou à mettre à jour selon leur potentiel de positionnement rapide et leur valeur commerciale."
+    ),
+    "Rédacteur d'Articles Sémantiques & SEO Neutre": (
+        "Rédige des articles de fond optimisés pour les moteurs de recherche et les lecteurs exigeants. "
+        "Déploie un champ lexical riche, répond directement aux intentions de recherche secondaires (People Also Ask) et évite toutes les formules artificielles."
     )
 }
 
@@ -83,7 +142,6 @@ def update_notion_pages():
         
         new_desc = DESCRIPTIONS_FR.get(title)
         if not new_desc:
-            print(f"Skipping (no custom translation for): {title}")
             continue
 
         # Get page blocks to find callout
@@ -103,12 +161,12 @@ def update_notion_pages():
                 print(f" -> [NOTION MIS A JOUR] {title}")
             else:
                 print(f" -> [ERREUR NOTION] {title}: {patch_res.text[:100]}")
-        else:
-            print(f" -> Pas de callout trouvé pour {title}")
 
 def update_web_data():
+    import os
     print("\n=== Mise à jour des données locales de la plateforme web ===")
-    web_file = r"C:\Users\sylvi\DEV\ANTIGRAVITY\prompt-vault-web\src\data\prompts.json"
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    web_file = os.path.join(base_dir, "src", "data", "prompts.json")
     with open(web_file, "r", encoding="utf-8") as f:
         prompts = json.load(f)
 
@@ -119,7 +177,7 @@ def update_web_data():
 
     with open(web_file, "w", encoding="utf-8") as f:
         json.dump(prompts, f, ensure_ascii=False, indent=2)
-    print(f"✅ Fichier web mis à jour avec les 12 descriptions traduites : {web_file}")
+    print(f"✅ Fichier web mis à jour avec toutes les descriptions 100% françaises : {web_file}")
 
 if __name__ == "__main__":
     update_notion_pages()
