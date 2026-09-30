@@ -8,6 +8,7 @@
   --bg-card: #15181f;
   --bg-input: #0c0e12;
   --bg-highlight: rgba(245, 158, 11, 0.08);
+  --bg-modal-backdrop: rgba(4, 5, 8, 0.78);
 
   --border-hairline: rgba(255, 255, 255, 0.06);
   --border-focus: rgba(245, 158, 11, 0.5);
@@ -22,6 +23,9 @@
   --accent-gold-hover: #d97706;
   --accent-gold-subtle: rgba(245, 158, 11, 0.12);
   --accent-emerald: #10b981;
+  --accent-emerald-subtle: rgba(16, 185, 129, 0.12);
+  --accent-danger: #ef4444;
+  --accent-danger-subtle: rgba(239, 68, 68, 0.12);
 
   --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -35,10 +39,11 @@
   --bg-card: #ffffff;
   --bg-input: #ffffff;
   --bg-highlight: rgba(217, 119, 6, 0.08);
+  --bg-modal-backdrop: rgba(15, 23, 42, 0.55);
 
-  --border-hairline: rgba(0, 0, 0, 0.06);
+  --border-hairline: rgba(0, 0, 0, 0.07);
   --border-focus: rgba(217, 119, 6, 0.5);
-  --border-card: rgba(0, 0, 0, 0.08);
+  --border-card: rgba(0, 0, 0, 0.09);
 
   --text-bright: #0f172a;
   --text-normal: #334155;
@@ -49,6 +54,9 @@
   --accent-gold-hover: #b45309;
   --accent-gold-subtle: rgba(217, 119, 6, 0.1);
   --accent-emerald: #059669;
+  --accent-emerald-subtle: rgba(5, 150, 105, 0.1);
+  --accent-danger: #dc2626;
+  --accent-danger-subtle: rgba(220, 38, 38, 0.1);
 }
 
 * {
@@ -70,6 +78,10 @@ code, pre {
   font-family: var(--font-mono);
 }
 
+input:focus, textarea:focus, select:focus {
+  border-color: var(--border-focus) !important;
+}
+
 /* Scrollbar ultra fine */
 ::-webkit-scrollbar {
   width: 5px;
@@ -84,4 +96,44 @@ code, pre {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(150, 150, 150, 0.38);
+}
+
+/* Responsive layout helpers */
+.ps-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .ps-mobile-nav {
+    display: flex !important;
+  }
+  .ps-col-sidebar {
+    position: fixed;
+    z-index: 40;
+    top: 48px;
+    bottom: 0;
+    left: 0;
+    width: 260px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+  .ps-col-feed {
+    width: 100% !important;
+  }
+  .ps-col-hidden-mobile {
+    display: none !important;
+  }
+  .ps-workbench-container {
+    padding: 1.25rem 1.1rem !important;
+  }
+  .ps-vars-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .ps-toolbar-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.65rem;
+  }
+  .ps-toolbar-actions {
+    flex-wrap: wrap;
+  }
 }
