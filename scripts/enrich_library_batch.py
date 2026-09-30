@@ -23,196 +23,241 @@ SCRAPE_HEADERS = {
     'Accept-Language': 'en-US,en;q=0.9',
 }
 
-# Lot de 20 nouveaux prompts (4 par catégorie : Coding, Design, Sales, Copywriting, SEO)
+# Lot de 25 nouveaux prompts (5 par catégorie : Coding, Design, Sales, Copywriting, SEO -> 12 prompts par catégorie = 72 total)
 TARGET_PROMPTS = [
-    # --- Coding (4) ---
+    # --- Coding (+5 -> 12) ---
     {
-        "id": "database-schema-architect",
-        "url": "https://godofprompt.ai/prompt-library/design-database-schemas",
+        "id": "api-integration-architect",
+        "url": "https://godofprompt.ai/prompt-library/perform-api-integrations",
         "category": "Coding",
-        "icon": "🗄️",
-        "title_fr": "Architecte de Schémas de Bases de Données & Modélisation SQL",
-        "description_fr": "Conçoit des schémas de bases de données relationnelles ou NoSQL normalisés, performants et évolutifs. Ce système définit les tables, clés primaires/étrangères, index stratégiques, contraintes d'intégrité et stratégies de migration pour supporter une montée en charge sans goulot d'étranglement.",
-        "guide_fr": "Précisez vos cas d'usage métier, le volume de lectures/écritures attendu et le SGBD choisi (PostgreSQL, MySQL, Prisma, Supabase) pour obtenir un script DDL prêt à exécuter avec les index optimaux."
+        "icon": "🔌",
+        "title_fr": "Architecte d'Intégrations API REST/GraphQL & Webhooks",
+        "description_fr": "Conçoit du code d'intégration d'API robuste et tolérant aux pannes : gestion de l'authentification (OAuth2, JWT, clés API), logique de retry avec backoff exponentiel, validation des schémas (Zod/TypeScript), gestion du rate-limiting et sécurisation des webhooks entrants.",
+        "guide_fr": "Collez la documentation de l'endpoint cible et précisez votre langage/framework (Node.js, Python, Next.js). Le prompt génère un client API typé, modulaire et prêt pour la production."
     },
     {
-        "id": "nl-to-sql-converter",
-        "url": "https://godofprompt.ai/prompt-library/plain-english-to-sql-query-converter",
+        "id": "sql-performance-optimizer",
+        "url": "https://godofprompt.ai/prompt-library/analyze-sql-query-performances",
         "category": "Coding",
-        "icon": "🔎",
-        "title_fr": "Convertisseur Langage Naturel vers Requêtes SQL Complexes",
-        "description_fr": "Traduit instantanément vos besoins analytiques exprimés en langage courant en requêtes SQL hautement optimisées (CTE, fonctions de fenêtrage, jointures multiples, agrégations). Idéal pour extraire des indicateurs métier précis tout en évitant les scans de table coûteux.",
-        "guide_fr": "Fournissez la structure de vos tables (ou votre schéma Prisma/SQL) ainsi que la question métier exacte. Le prompt générera la requête commentée ainsi qu'une analyse de performance (EXPLAIN)."
-    },
-    {
-        "id": "complex-code-deconstructor",
-        "url": "https://godofprompt.ai/prompt-library/break-down-complex-code",
-        "category": "Coding",
-        "icon": "🧩",
-        "title_fr": "Analyseur & Décrypteur de Code Legacy Complexe",
-        "description_fr": "Déconstruit n'importe quel bloc de code monolithique, algorithme obscur ou codebase legacy en une explication architecturale limpide. Identifie les flux de données, les effets de bord cachés, la complexité algorithmique (Big-O) et propose des pistes de refactorisation sûres.",
-        "guide_fr": "Collez une fonction ou une classe difficile à maintenir. Utilisez la cartographie générée pour documenter votre code ou préparer une refactorisation sans casser la logique existante."
-    },
-    {
-        "id": "app-security-auditor",
-        "url": "https://godofprompt.ai/prompt-library/secure-vibe-coded-app",
-        "category": "Coding",
-        "icon": "🔐",
-        "title_fr": "Auditeur de Sécurité Applicative & Vulnérabilités OWASP",
-        "description_fr": "Passe au crible votre code et votre architecture pour détecter les failles de sécurité critiques (injections, failles d'authentification, exposition de secrets, IDOR, XSS/CSRF). Fournit un rapport de remédiation priorisé par sévérité avec les correctifs de code exacts.",
-        "guide_fr": "Exécutez cet audit avant toute mise en production, en particulier sur les routes d'API, les middlewares d'authentification et la gestion des paiements ou données utilisateurs sensibles."
-    },
-
-    # --- Design (4) ---
-    {
-        "id": "brand-logo-designer",
-        "url": "https://godofprompt.ai/prompt-library/generate-brand-logo-ideas",
-        "category": "Design",
-        "icon": "🎨",
-        "title_fr": "Concepteur de Logos Minimalistes & Identité Visuelle",
-        "description_fr": "Génère des concepts de logos vectoriels mémorables, intemporels et déclinables sur tous les supports. Combine la psychologie des formes, le minimalisme géométrique (style Paul Rand / Pentagram) et l'équilibre négatif pour créer un symbole fort.",
-        "guide_fr": "Indiquez les valeurs fondamentales de votre marque et les éléments visuels à éviter absolument. Utilisez le prompt généré dans Midjourney, Ideogram ou Recraft pour obtenir des planches de logos vectoriels."
-    },
-    {
-        "id": "editorial-product-photoshoot",
-        "url": "https://godofprompt.ai/prompt-library/create-editorial-product-photoshoots",
-        "category": "Design",
-        "icon": "📷",
-        "title_fr": "Shooting Photo Produit Éditorial & Studio Commercial",
-        "description_fr": "Orchestrez des séances photo produits dignes des plus grands studios créatifs sans matériel physique. Définit la scénographie, les matériaux de surface (travertin, béton ciré, métal brossé), la direction de lumière et l'objectif photographique.",
-        "guide_fr": "Parfait pour les fiches produits e-commerce et campagnes social media. Précisez les couleurs dominantes de votre produit pour créer un contraste chromatique harmonieux avec le décor."
-    },
-    {
-        "id": "editorial-flat-illustrations",
-        "url": "https://godofprompt.ai/prompt-library/design-editorial-flat-illustrations",
-        "category": "Design",
-        "icon": "✒️",
-        "title_fr": "Illustrations Vectorielles Éditoriales & Flat Design",
-        "description_fr": "Crée des illustrations éditoriales modernes et épurées (inspirées du style New Yorker, Notion ou Stripe) pour habiller vos articles de blog, landing pages SaaS et présentations. Garantit une cohérence de trait, de grain et de palette chromatique.",
-        "guide_fr": "Décrivez le concept abstrait ou la métaphore que vous souhaitez illustrer (ex: la productivité, la cybersécurité) ainsi que 2 à 3 couleurs de votre charte graphique."
-    },
-    {
-        "id": "minimalist-website-ui",
-        "url": "https://godofprompt.ai/prompt-library/build-minimalist-company-websites",
-        "category": "Design",
-        "icon": "🖥️",
-        "title_fr": "Architecte UI/UX de Sites Web Minimalistes & Modernes",
-        "description_fr": "Conçoit le système de design complet et la maquette structurelle d'un site web d'entreprise ultra-épuré (inspiration Linear, Apple, Vercel). Définit la grille typographique, la hiérarchie visuelle, les micro-interactions et l'agencement des sections clés.",
-        "guide_fr": "Utilisez ce prompt en amont du développement ou dans des outils comme Stitch/v0/Cursor pour poser une direction artistique sobre, lisible et orientée conversion."
-    },
-
-    # --- Sales (4) ---
-    {
-        "id": "b2b-sales-playbook",
-        "url": "https://godofprompt.ai/prompt-library/create-sales-playbook",
-        "category": "Sales",
-        "icon": "📘",
-        "title_fr": "Créateur de Sales Playbook & Standardisation Commerciale",
-        "description_fr": "Bâtit le manuel d'exécution commerciale complet de votre entreprise : qualification des leads (MEDDIC/BANT), scripts d'appels de découverte, grille de démonstration, matrices de traitement d'objections et séquences de closing reproductibles.",
-        "guide_fr": "Indispensable pour structurer votre démarche commerciale ou former de nouveaux commerciaux (SDR/Account Executives). Précisez votre cycle de vente moyen et le panier moyen (ACV)."
-    },
-    {
-        "id": "negotiation-email-strategist",
-        "url": "https://godofprompt.ai/prompt-library/craft-negotiation-emails",
-        "category": "Sales",
-        "icon": "🤝",
-        "title_fr": "Stratège de Négociation Commerciale & Défense des Marges",
-        "description_fr": "Rédige des réponses de négociation chirurgicales pour défendre vos tarifs face aux demandes de remise, débloquer les achats (Procurement) et obtenir des contreparties concrètes (engagement pluriannuel, étude de cas, paiement comptant) sans dévaloriser votre offre.",
-        "guide_fr": "Ne cédez jamais une remise sans contrepartie (Give-Get). Indiquez l'objection budgétaire exacte du prospect et votre marge de manœuvre réelle pour générer 3 options de réponse."
-    },
-    {
-        "id": "investor-pitch-narrative",
-        "url": "https://godofprompt.ai/prompt-library/develop-investor-pitch-narratives",
-        "category": "Sales",
         "icon": "🚀",
-        "title_fr": "Architecte de Pitch Deck & Storytelling Investisseurs",
-        "description_fr": "Structure un récit de levée de fonds ou de partenariat stratégique irrésistible slide par slide : l'inévitabilité du marché (Why Now), l'ampleur du problème, la supériorité du produit, la traction, le modèle économique (Unit Economics) et la vision long terme.",
-        "guide_fr": "Fournissez vos métriques actuelles (même modestes) et l'avantage injuste (Unfair Advantage) de votre projet pour construire une trame narrative qui capte l'attention des décideurs en 3 minutes."
+        "title_fr": "Optimiseur de Performance SQL & Indexation Avancée",
+        "description_fr": "Diagnostique les requêtes SQL lentes et les goulots d'étranglement de votre base de données. Décode les plans d'exécution (EXPLAIN ANALYZE), élimine les problèmes N+1 et les Full Table Scans, réécrit les sous-requêtes coûteuses et recommande les index composites exacts.",
+        "guide_fr": "Fournissez votre requête lente accompagnée de la sortie d'EXPLAIN ANALYZE et de la volumétrie approximative de vos tables pour diviser vos temps de réponse par 10."
     },
     {
-        "id": "sales-objection-crusher",
-        "url": "https://godofprompt.ai/prompt-library/generate-sales-conversation-replies",
+        "id": "frontend-qa-auditor",
+        "url": "https://godofprompt.ai/prompt-library/frontend-qa-sweep-on-staging",
+        "category": "Coding",
+        "icon": "🧪",
+        "title_fr": "Auditeur QA Frontend & Recette Technique Pré-Production",
+        "description_fr": "Établit un protocole d'inspection systématique de votre interface avant la mise en production : états de chargement/erreur/vide, responsive multi-écrans, accessibilité clavier (ARIA), fuites mémoire, résilience réseau (3G/offline) et tests E2E Playwright/Cypress.",
+        "guide_fr": "Utilisez cette grille sur votre environnement de staging avant chaque release majeure pour intercepter les régressions visuelles et fonctionnelles que les tests unitaires ne voient pas."
+    },
+    {
+        "id": "technical-docs-generator",
+        "url": "https://godofprompt.ai/prompt-library/draft-documentation-from-vibe-code",
+        "category": "Coding",
+        "icon": "📚",
+        "title_fr": "Générateur de Documentation Technique & Spécifications API",
+        "description_fr": "Transforme votre code source en une documentation technique claire, structurée et maintenable : README d'architecture, diagrammes de flux Mermaid, documentation des endpoints API (OpenAPI/Swagger), guide d'onboarding développeur et ADR (Architecture Decision Records).",
+        "guide_fr": "Fournissez vos fichiers principaux ou votre arbre de dossiers. Idéal pour professionnaliser un dépôt GitHub ou faciliter la passation technique à une équipe."
+    },
+    {
+        "id": "ethical-web-scraper-builder",
+        "url": "https://godofprompt.ai/prompt-library/generate-ethical-web-scraping-script",
+        "category": "Coding",
+        "icon": "🕸️",
+        "title_fr": "Ingénieur d'Extraction de Données & Web Scraping Résilient",
+        "description_fr": "Développe des pipelines d'extraction et de parsing de données web propres et respectueux (BeautifulSoup, Playwright, Puppeteer). Gère la pagination dynamique, la limitation de cadence (throttling), la gestion des erreurs DOM et l'export structuré en JSON/CSV.",
+        "guide_fr": "Indiquez la structure HTML cible (sélecteurs CSS ou extrait du DOM) et le format de sortie souhaité pour obtenir un script d'automatisation fiable et bien structuré."
+    },
+
+    # --- Design (+5 -> 12) ---
+    {
+        "id": "clean-saas-ui-concepts",
+        "url": "https://godofprompt.ai/prompt-library/create-clean-ui-design-concepts",
+        "category": "Design",
+        "icon": "🎛️",
+        "title_fr": "Concepteur d'Interfaces SaaS & Dashboard UI Épuré",
+        "description_fr": "Génère des concepts d'interfaces logicielles et de tableaux de bord SaaS modernes à haute lisibilité. Maîtrise l'espacement (grille 8pt), les contrastes subtils en mode sombre/clair, la visualisation de données (data-viz) et l'esthétique fonctionnelle contemporaine.",
+        "guide_fr": "Décrivez les métriques ou fonctionnalités clés à afficher à l'écran et précisez le thème souhaité (Dark Mode type Linear/Raycast ou Light Mode type Stripe/Notion)."
+    },
+    {
+        "id": "premium-fashion-lookbook",
+        "url": "https://godofprompt.ai/prompt-library/design-premium-fashion-advertisement-layouts",
+        "category": "Design",
+        "icon": "🧥",
+        "title_fr": "Directeur Artistique de Campagnes Mode & Lookbooks",
+        "description_fr": "Conçoit des visuels de campagnes mode et streetwear haut de gamme avec une direction artistique digne des magazines internationaux. Contrôle le drapé des textiles, la pose éditoriale des mannequins, le grain argentique moyen format et la composition typographique.",
+        "guide_fr": "Spécifiez la coupe du vêtement, la matière exacte (lin lavé, cuir grainé, laine mérinos) et l'ambiance architecturale du décor pour un rendu lookbook authentique."
+    },
+    {
+        "id": "luxury-billboard-mockups",
+        "url": "https://godofprompt.ai/prompt-library/generate-luxury-billboard-mockups",
+        "category": "Design",
+        "icon": "🏙️",
+        "title_fr": "Mockups d'Affichage Urbain & Campagnes OOH Grand Format",
+        "description_fr": "Crée des mises en situation photoréalistes de vos campagnes publicitaires sur des panneaux d'affichage urbains (Out-Of-Home), abribus ou écrans géants architecturaux. Intègre la perspective naturelle, l'éclairage ambiant de la ville et les reflets atmosphériques.",
+        "guide_fr": "Parfait pour projeter une identité de marque dans le monde réel lors d'un pitch client. Précisez l'environnement urbain (Paris haussmannien, Tokyo nocturne, avenue minimaliste)."
+    },
+    {
+        "id": "luxury-beauty-product-shots",
+        "url": "https://godofprompt.ai/prompt-library/create-luxury-beauty-product-shots",
+        "category": "Design",
+        "icon": "💧",
+        "title_fr": "Photographie Cosmétique & Textures Skincare Haute Définition",
+        "description_fr": "Sublime vos produits cosmétiques et soins de la peau grâce à la photographie macro commerciale : gouttelettes d'eau cristallines, textures de sérum ou de crème onctueuse (swatches), surfaces minérales humides et lumière douce réfractée.",
+        "guide_fr": "Associez le flacon ou pot à ses ingrédients botaniques ou minéraux phares (ex: quartz rose, feuille d'aloe, ondulations d'eau pure) pour évoquer immédiatement la sensorialité du soin."
+    },
+    {
+        "id": "architectural-exterior-renders",
+        "url": "https://godofprompt.ai/prompt-library/render-photorealistic-architecture-exteriors",
+        "category": "Design",
+        "icon": "🏛️",
+        "title_fr": "Rendu Architectural Photoréaliste & Design d'Espaces",
+        "description_fr": "Produit des visualisations architecturales extérieures et intérieures d'un réalisme saisissant (style ArchDaily / Dezeen). Maîtrise les matériaux bruts (béton banché, bois brûlé, verre structurel), la végétation paysagère et l'orientation solaire précise.",
+        "guide_fr": "Indiquez le style architectural (minimalisme japonais, brutalisme chaleureux, pavillon méditerranéen) et l'heure du jour (heure bleue, zénith, brume matinale)."
+    },
+
+    # --- Sales (+5 -> 12) ---
+    {
+        "id": "b2b-proposal-architect",
+        "url": "https://godofprompt.ai/prompt-library/create-compelling-proposal-presentations",
         "category": "Sales",
+        "icon": "📑",
+        "title_fr": "Rédacteur de Propositions Commerciales & Offres Sur-Mesure",
+        "description_fr": "Structure des propositions commerciales B2B qui vendent même en votre absence (pour le comité de direction). Met en avant le diagnostic coût de l'inaction, le retour sur investissement chiffré, le plan de déploiement sans risque et une tarification à 3 paliers d'ancrage.",
+        "guide_fr": "Ne commencez jamais une proposition par la présentation de votre entreprise : ouvrez toujours sur la reformulation exacte des enjeux stratégiques du client et le coût de son problème actuel."
+    },
+    {
+        "id": "strategic-upsell-expansion",
+        "url": "https://godofprompt.ai/prompt-library/identify-strategic-upsell-opportunities",
+        "category": "Sales",
+        "icon": "📈",
+        "title_fr": "Stratège d'Expansion de Comptes (Upsell & Cross-Sell)",
+        "description_fr": "Identifie et active les opportunités de croissance au sein de votre portefeuille clients existant (Net Revenue Retention). Détecte les signaux d'usage, prépare les bilans trimestriels de valeur (QBR) et formule des offres d'extension naturelles.",
+        "guide_fr": "Appuyez-vous sur les résultats déjà obtenus par le client avec votre offre initiale pour présenter l'upsell comme l'étape logique suivante de sa croissance."
+    },
+    {
+        "id": "chat-closing-scripts",
+        "url": "https://godofprompt.ai/prompt-library/build-chat-closing-script-libraries",
+        "category": "Sales",
+        "icon": "💬",
+        "title_fr": "Bibliothèque de Scripts de Closing par Chat & DM (Social Selling)",
+        "description_fr": "Conçoit des séquences conversationnelles pour qualifier et convertir des prospects par messagerie directe (LinkedIn DM, Instagram, WhatsApp, Live Chat) sans paraître intrusif. Utilise le diagnostic par micro-questions pour amener naturellement à la prise de rendez-vous.",
+        "guide_fr": "Gardez des messages courts (2 à 3 phrases maximum) qui se terminent toujours par une question ouverte simple portant sur la situation actuelle de votre interlocuteur."
+    },
+    {
+        "id": "contract-negotiation-analyzer",
+        "url": "https://godofprompt.ai/prompt-library/analyze-contract-negotiation-points",
+        "category": "Sales",
+        "icon": "⚖️",
+        "title_fr": "Analyseur de Clauses Contractuelles & Leviers d'Accord B2B",
+        "description_fr": "Examine les points de friction lors de la finalisation d'un contrat commercial (conditions de paiement, SLA, clauses de sortie, propriété intellectuelle, responsabilité). Propose des formulations de compromis équilibrées qui accélèrent la validation juridique.",
+        "guide_fr": "Séparez les concessions financières des concessions de conditions (ex: échanger un délai de paiement à 30 jours contre une signature avant la fin du mois)."
+    },
+    {
+        "id": "multi-touch-followup-system",
+        "url": "https://godofprompt.ai/prompt-library/generate-follow-up-emails",
+        "category": "Sales",
+        "icon": "🔔",
+        "title_fr": "Système de Relance Commerciale Multi-Touches Sans Friction",
+        "description_fr": "Remplace les relances banales ('Je reviens vers vous...') par une séquence d'emails de suivi qui apportent une nouvelle valeur à chaque point de contact : étude de cas ciblée, ressource métier, insight sectoriel et email de clôture élégant (break-up email).",
+        "guide_fr": "Chaque email de relance doit pouvoir se suffire à lui-même et apporter un angle neuf ou une preuve supplémentaire plutôt que de culpabiliser le prospect pour son silence."
+    },
+
+    # --- Copywriting (+5 -> 12) ---
+    {
+        "id": "persuasive-editorial-writer",
+        "url": "https://godofprompt.ai/prompt-library/create-persuasive-editorial-content",
+        "category": "Copywriting",
+        "icon": "🪶",
+        "title_fr": "Rédacteur d'Articles d'Opinion (Thought Leadership) & Éditoriaux",
+        "description_fr": "Rédige des essais, tribunes et prises de position d'autorité qui vous démarquent du consensus tiède de votre marché. Structure une thèse forte, démonte les idées reçues avec des preuves tangibles et installe votre statut d'expert référent.",
+        "guide_fr": "Identifiez une croyance répandue mais obsolète dans votre industrie et expliquez avec bienveillance et rigueur pourquoi la nouvelle réalité exige une approche différente."
+    },
+    {
+        "id": "google-ads-headline-engine",
+        "url": "https://godofprompt.ai/prompt-library/craft-google-ads-headlines",
+        "category": "Copywriting",
         "icon": "⚡",
-        "title_fr": "Traitement des Objections & Réponses de Closing B2B",
-        "description_fr": "Transforme les hésitations et blocages des prospects ('C'est trop cher', 'On utilise déjà un concurrent', 'Rappelez-moi au prochain trimestre') en conversations constructives grâce aux techniques d'empathie tactique et de recadrage par la valeur.",
-        "guide_fr": "Collez le message ou l'objection exacte reçue par email, LinkedIn ou en appel. Le prompt vous livre une réponse immédiate qui valide l'inquiétude tout en isolant le vrai frein à la décision."
+        "title_fr": "Générateur d'Accroches Google Ads & Titres à Fort CTR",
+        "description_fr": "Produit des matrices complètes de titres (30 caractères) et descriptions (90 caractères) pour vos campagnes Google Search (RSA). Maximise le Quality Score et le taux de clic grâce à l'insertion précise des mots-clés, des chiffres preuves et des bénéfices immédiats.",
+        "guide_fr": "Variez les angles entre vos 15 titres RSA : 5 centrés sur le mot-clé exact, 5 sur le bénéfice chiffré ou la rapidité, et 5 sur la réassurance et l'appel à l'action."
+    },
+    {
+        "id": "email-story-hooks-creator",
+        "url": "https://godofprompt.ai/prompt-library/get-email-story-hooks",
+        "category": "Copywriting",
+        "icon": "🪝",
+        "title_fr": "Créateur d'Ouvertures Narratives & Hooks d'Emails Quotidiens",
+        "description_fr": "Transforme des anecdotes du quotidien, des observations clients ou des faits d'actualité en ouvertures d'emails irrésistibles (style Seinfeld Emails / Infotainment), reliées avec fluidité à une leçon métier et à votre offre du jour.",
+        "guide_fr": "La première phrase de votre email doit être courte, visuelle ou intrigante pour entraîner le lecteur dans un toboggan de lecture (slippery slide) jusqu'à l'appel à l'action."
+    },
+    {
+        "id": "long-form-sales-page-writer",
+        "url": "https://godofprompt.ai/prompt-library/create-high-converting-sales-pages",
+        "category": "Copywriting",
+        "icon": "📜",
+        "title_fr": "Architecte de Pages de Vente Long-Form & Argumentaires Directs",
+        "description_fr": "Développe l'argumentaire complet d'une page de vente haute conversion pour vos offres premium, formations ou logiciels : grande promesse, qualification à qui s'adresse l'offre, démonstration du mécanisme unique, empilement des bonus, FAQ anti-objections et garantie.",
+        "guide_fr": "Alternez les éléments émotionnels (la transformation vécue après l'achat) et les éléments rationnels (caractéristiques précises, ROI chiffré, garanties) pour convaincre tous les profils d'acheteurs."
+    },
+    {
+        "id": "renewal-anti-churn-sequences",
+        "url": "https://godofprompt.ai/prompt-library/draft-subscription-renewal-communication-sequences",
+        "category": "Copywriting",
+        "icon": "🔄",
+        "title_fr": "Séquences de Renouvellement d'Abonnement & Anti-Churn",
+        "description_fr": "Conçoit des campagnes d'emails de fidélisation, de passage à l'offre annuelle et de réactivation (win-back). Rappelle la valeur cumulée par l'utilisateur, célèbre ses jalons d'utilisation et neutralise les risques de résiliation.",
+        "guide_fr": "Envoyez votre séquence de renouvellement 30, 15 et 3 jours avant l'échéance en mettant en avant le bilan personnalisé des résultats obtenus par le client."
     },
 
-    # --- Copywriting (4) ---
+    # --- SEO (+5 -> 12) ---
     {
-        "id": "strategic-storytelling-master",
-        "url": "https://godofprompt.ai/prompt-library/use-storytelling-techniques",
-        "category": "Copywriting",
-        "icon": "📖",
-        "title_fr": "Maître du Storytelling Stratégique & Récit de Marque",
-        "description_fr": "Transforme des faits bruts, études de cas ou parcours d'entreprise en récits captivants basés sur les structures dramaturgiques éprouvées (Voyage du Héros, In Media Res, Tension-Résolution). Crée une connexion émotionnelle immédiate qui fait mémoriser votre message.",
-        "guide_fr": "Commencez toujours au cœur de l'action ou du moment de crise plutôt que par une longue introduction chronologique. Idéal pour vos pages 'À propos', posts fondateurs et conférences."
-    },
-    {
-        "id": "high-retention-newsletter",
-        "url": "https://godofprompt.ai/prompt-library/create-engaging-newsletter-content",
-        "category": "Copywriting",
-        "icon": "📰",
-        "title_fr": "Rédacteur de Newsletters Captivantes à Forte Rétention",
-        "description_fr": "Conçoit des éditions de newsletters que vos abonnés attendent chaque semaine : objets d'emails à fort taux d'ouverture, intro narrative fluide, apport de valeur dense et scannable, et transition naturelle vers votre offre commerciale.",
-        "guide_fr": "Suivez la règle 80/20 : 80 % de valeur pure (insight exclusif, méthode applicable en 5 minutes) et 20 % d'appel à l'action vers vos produits ou services."
-    },
-    {
-        "id": "ppc-ad-copy-converter",
-        "url": "https://godofprompt.ai/prompt-library/write-ppc-ad-copy",
-        "category": "Copywriting",
-        "icon": "🎯",
-        "title_fr": "Copywriter Publicitaire Haute Conversion (Meta & Google Ads)",
-        "description_fr": "Génère des variations d'annonces publicitaires payantes (titres, textes principaux, descriptions) calibrées pour stopper le scroll, maximiser le taux de clic (CTR) et abaisser votre coût d'acquisition (CPA) en ciblant différents niveaux de conscience du marché.",
-        "guide_fr": "Générez systématiquement 3 angles psychologiques distincts par campagne (Douleur/Urgence, Preuve Sociale/Résultat, Curiosité/Mécanisme Unique) pour vos tests A/B."
-    },
-    {
-        "id": "viral-x-threads-architect",
-        "url": "https://godofprompt.ai/prompt-library/generate-viral-x-threads",
-        "category": "Copywriting",
-        "icon": "🧵",
-        "title_fr": "Architecte de Threads Viraux & Carrousels d'Autorité",
-        "description_fr": "Découpe un sujet d'expertise dense en une séquence de posts courts (Thread X/Twitter ou Carrousel LinkedIn) au rythme magnétique. Chaque étape contient une micro-récompense cognitive et une boucle ouverte qui pousse à lire la suite et à enregistrer le post.",
-        "guide_fr": "Soignez particulièrement le Tweet/Slide n°1 (promesse chiffrée + preuve de crédibilité) et l'avant-dernier post qui synthétise toute la valeur pour déclencher les partages (retweets/bookmarks)."
-    },
-
-    # --- SEO (4) ---
-    {
-        "id": "high-volume-keyword-hunter",
-        "url": "https://godofprompt.ai/prompt-library/discover-high-volume-keyword-opportunities",
+        "id": "technical-seo-deep-auditor",
+        "url": "https://godofprompt.ai/prompt-library/perform-comprehensive-technical-seo-audit",
         "category": "SEO",
-        "icon": "💎",
-        "title_fr": "Chasseur de Mots-Clés à Fort Potentiel & Faible Concurrence",
-        "description_fr": "Identifie des grappes de mots-clés (Topic Clusters) et des requêtes de longue traîne à haute intention commerciale que vos concurrents ignorent. Classe chaque opportunité par intention de recherche (informationnelle, comparative, transactionnelle) et priorité business.",
-        "guide_fr": "Ciblez en priorité les requêtes à forte intention d'achat ('meilleur outil pour...', 'alternative à...', 'comparatif...') qui génèrent des conversions rapides même avec un volume modéré."
+        "icon": "⚙️",
+        "title_fr": "Auditeur SEO Technique Approfondi (Crawl, Indexation & Core Web Vitals)",
+        "description_fr": "Examine l'infrastructure technique de votre site pour lever tous les freins à l'indexation et au classement Google : budget de crawl, robots.txt, sitemaps XML, balises canoniques, erreurs 4xx/5xx, chaînes de redirections, rendu JavaScript et Core Web Vitals (LCP, INP, CLS).",
+        "guide_fr": "Idéal lors d'une refonte de site ou d'une baisse inexpliquée de trafic organique. Fournissez la stack de votre site (Next.js, WordPress, Shopify, Webflow) pour des recommandations ciblées."
     },
     {
-        "id": "local-seo-dominator",
-        "url": "https://godofprompt.ai/prompt-library/conduct-local-seo-audit",
+        "id": "internal-linking-architect",
+        "url": "https://godofprompt.ai/prompt-library/develop-internal-linking-framework",
         "category": "SEO",
-        "icon": "📍",
-        "title_fr": "Auditeur SEO Local & Optimisation Google Business Profile",
-        "description_fr": "Déploie un plan d'action complet pour dominer le Pack Local Google Maps et les recherches géolocalisées : optimisation de la fiche Google Business Profile, stratégie de collecte d'avis sémantiques, pages locales dédiées, citations NAP et balisage Schema.org LocalBusiness.",
-        "guide_fr": "Encouragez vos clients à mentionner naturellement le nom de la prestation et la ville dans leurs avis Google : c'est l'un des facteurs de classement local les plus puissants."
+        "icon": "🕸️",
+        "title_fr": "Architecte de Maillage Interne & Cocons Sémantiques",
+        "description_fr": "Structure le maillage interne de votre site en silos thématiques et cocons sémantiques (Pillar Pages & Cluster Content). Optimise la distribution du PageRank interne, définit les ancres de liens contextuelles variées et élimine les pages orphelines.",
+        "guide_fr": "Listez vos pages piliers (pages commerciales ou guides majeurs) ainsi que vos articles de blog satellites pour obtenir un plan de liaison précis avec les textes d'ancrage recommandés."
     },
     {
-        "id": "youtube-seo-strategist",
-        "url": "https://godofprompt.ai/prompt-library/develop-youtube-seo-strategy",
+        "id": "authority-backlink-strategist",
+        "url": "https://godofprompt.ai/prompt-library/acquire-quality-backlinks-from-authority-sites",
         "category": "SEO",
-        "icon": "▶️",
-        "title_fr": "Stratège SEO YouTube & Algorithme de Découvrabilité Vidéo",
-        "description_fr": "Optimise le référencement de vos vidéos sur YouTube et Google Vidéos : recherche de mots-clés vidéo, titres optimisés CTR + SEO, descriptions riches en entités, chapitrage stratégique (timestamps), tags sémantiques et maillage de fin d'écran.",
-        "guide_fr": "Prononcez votre mot-clé principal à voix haute dans les 30 premières secondes de la vidéo : YouTube indexe automatiquement la transcription audio pour classer votre contenu."
+        "icon": "🔗",
+        "title_fr": "Stratège Netlinking & Acquisition de Backlinks d'Autorité",
+        "description_fr": "Conçoit des campagnes d'acquisition de liens entrants (Backlinks White-Hat) à haute autorité : création d'actifs linkables (études de données, calculateurs, baromètres), relations presse digitales (Digital PR), récupération de liens cassés et partenariats éditoriaux.",
+        "guide_fr": "Privilégiez toujours la pertinence thématique et le trafic réel du domaine référent plutôt que le volume brut de liens. Utilisez les modèles d'outreach inclus pour maximiser le taux de réponse."
     },
     {
-        "id": "seo-content-humanizer",
-        "url": "https://godofprompt.ai/prompt-library/humanize-your-seo-text",
+        "id": "schema-markup-jsonld-generator",
+        "url": "https://godofprompt.ai/prompt-library/implement-schema-markup-in-e-commerce-seo",
         "category": "SEO",
-        "icon": "✍️",
-        "title_fr": "Humaniseur de Contenu SEO & Optimisation E-E-A-T",
-        "description_fr": "Réécrit et enrichit les brouillons d'articles SEO pour éliminer toute tournure robotique ou répétitive. Injecte de la variété syntaxique (perplexité et burstiness), un ton incarné et les marqueurs d'expérience réelle (E-E-A-T) valorisés par Google.",
-        "guide_fr": "Passez vos textes générés par IA dans ce filtre avant publication et ajoutez un encadré 'Retour d'expérience terrain' ou un chiffre issu de votre propre pratique pour maximiser la crédibilité."
+        "icon": "🏷️",
+        "title_fr": "Générateur de Données Structurées Schema.org (JSON-LD & Rich Snippets)",
+        "description_fr": "Génère des blocs de données structurées JSON-LD valides selon les derniers standards Schema.org et Google Search Central (Product, FAQPage, Article, SoftwareApplication, Organization, BreadcrumbList) pour décrocher les résultats enrichis (Rich Snippets) et nourrir les moteurs IA (GEO).",
+        "guide_fr": "Intégrez le script JSON-LD généré dans le <head> de votre page et validez-le avec le test des résultats enrichis Google pour augmenter la surface visuelle de votre résultat dans la SERP."
+    },
+    {
+        "id": "serp-reverse-engineering",
+        "url": "https://godofprompt.ai/prompt-library/conduct-serp-analysis-strategy",
+        "category": "SEO",
+        "icon": "🧭",
+        "title_fr": "Analyseur de SERP Google & Rétro-Ingénierie du Top 3",
+        "description_fr": "Décortique la première page de Google pour un mot-clé donné afin d'identifier exactement ce que l'algorithme récompense : format dominant (guide, outil, comparatif), profondeur sémantique, fonctionnalités SERP présentes (PAA, Featured Snippet) et angle différenciant (Information Gain).",
+        "guide_fr": "Renseignez votre requête cible et les titres ou plans des 3 premiers résultats actuels. Le prompt vous livrera le plan d'article exact conçu pour les surpasser."
     }
 ]
 

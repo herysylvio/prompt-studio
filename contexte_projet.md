@@ -45,15 +45,15 @@
 
 ---
 
-## 4. État de la Bibliothèque (47 Prompts Actifs)
+## 4. État de la Bibliothèque (72 Prompts Actifs)
 
-La bibliothèque compte actuellement 47 prompts opérationnels répartis dans 6 thématiques :
-- **Marketing & Croissance** (12 prompts) : Landing pages, tunnels de vente, piliers de contenu, stratégie 360°, etc.
-- **Code & Développement** (7 prompts) : Architecte logiciel full-stack, schémas de bases de données, convertisseur NL-to-SQL, décrypteur de code legacy, audit de sécurité OWASP, débogueur systématique, pipeline qualité CI/CD.
-- **Design & Visuels** (7 prompts) : Publicités de luxe & parfums, portraits cinématographiques, mockups packaging, logos minimalistes, shooting photo éditorial, illustrations flat design, architecture UI/UX de sites web.
-- **Vente & Conversion** (7 prompts) : Cold emailing B2B, scripts VSL, diagnostic des risques de closing, Sales Playbook, négociation commerciale, pitch deck investisseurs, traitement des objections.
-- **Copywriting & Écriture** (7 prompts) : Clonage de style éditorial, polisseur littéraire, scripts vidéos courtes virales, storytelling stratégique, newsletters haute rétention, copy publicitaire Meta/Google Ads, threads viraux.
-- **SEO & Visibilité** (7 prompts) : Audit SEO On-Page, content gap analysis, rédacteur d'articles sémantiques, chasseur de mots-clés, audit SEO local & Google Business Profile, stratégie SEO YouTube, humaniseur E-E-A-T.
+La bibliothèque compte actuellement 72 prompts opérationnels parfaitement équilibrés dans les 6 thématiques (12 prompts par catégorie) :
+- **Marketing & Croissance** (12 prompts) : Landing pages, tunnels de vente, piliers de contenu, stratégie 360°, hooks LinkedIn, onboarding email, posts multi-plateformes, etc.
+- **Code & Développement** (12 prompts) : Architecte logiciel full-stack, schémas de bases de données, convertisseur NL-to-SQL, optimisation SQL, intégrations API & Webhooks, QA Frontend, documentation technique, web scraping, décrypteur de code legacy, audit de sécurité OWASP, débogueur systématique, pipeline qualité CI/CD.
+- **Design & Visuels** (12 prompts) : Publicités de luxe & parfums, portraits cinématographiques, mockups packaging, logos minimalistes, shooting photo éditorial, illustrations flat design, architecture UI/UX de sites web, interfaces SaaS & dashboards, lookbooks mode, mockups affichage urbain OOH, photographie cosmétique macro, rendus architecturaux.
+- **Vente & Conversion** (12 prompts) : Cold emailing B2B, scripts VSL, diagnostic des risques de closing, Sales Playbook, négociation commerciale, pitch deck investisseurs, traitement des objections, propositions commerciales sur-mesure, expansion de comptes (Upsell/Cross-Sell), scripts de closing Chat/DM, analyse contractuelle B2B, relances multi-touches.
+- **Copywriting & Écriture** (12 prompts) : Clonage de style éditorial, polisseur littéraire, scripts vidéos courtes virales, storytelling stratégique, newsletters haute rétention, copy publicitaire Meta/Google Ads, threads viraux, articles d'opinion (Thought Leadership), accroches Google Ads RSA, hooks narratifs d'emails quotidiens, pages de vente long-form, séquences anti-churn.
+- **SEO & Visibilité** (12 prompts) : Audit SEO On-Page, content gap analysis, rédacteur d'articles sémantiques, chasseur de mots-clés, audit SEO local & Google Business Profile, stratégie SEO YouTube, humaniseur E-E-A-T, audit SEO technique approfondi, maillage interne & cocons sémantiques, netlinking & backlinks d'autorité, données structurées Schema.org JSON-LD, rétro-ingénierie de SERP.
 
 Les données de production sont stockées dans :
 `src/data/prompts.json`
