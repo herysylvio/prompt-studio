@@ -4,7 +4,8 @@ import {
   Cpu, ArrowUpRight, Megaphone, Globe, Code2, Palette,
   ShoppingBag, PenTool, FileCode, Star, Plus, Download, Link2,
   RotateCcw, PanelLeftClose, PanelLeftOpen, Command, FileText,
-  Trash2, Edit3, X, FolderHeart, CheckCircle2, Keyboard, ListFilter
+  Trash2, Edit3, X, FolderHeart, CheckCircle2, Keyboard, ListFilter,
+  Bot, Briefcase, LineChart, UserCheck, Wand2, Upload, Save
 } from 'lucide-react';
 import promptsData from './data/prompts.json';
 
@@ -13,6 +14,8 @@ const STORAGE_KEYS = {
   FAVORITES: 'ps_favorites_v1',
   CUSTOM_PROMPTS: 'ps_custom_prompts_v1',
   SAVED_VARS: 'ps_saved_vars_v1',
+  CONTEXT_PROFILES: 'ps_context_profiles_v1',
+  ACTIVE_PROFILE_ID: 'ps_active_profile_id_v1',
 };
 
 function safeLoadJSON(key, fallback) {
@@ -30,6 +33,8 @@ export default function App() {
   const [favorites, setFavorites] = useState(() => safeLoadJSON(STORAGE_KEYS.FAVORITES, []));
   const [customPrompts, setCustomPrompts] = useState(() => safeLoadJSON(STORAGE_KEYS.CUSTOM_PROMPTS, []));
   const [allSavedVars, setAllSavedVars] = useState(() => safeLoadJSON(STORAGE_KEYS.SAVED_VARS, {}));
+  const [contextProfiles, setContextProfiles] = useState(() => safeLoadJSON(STORAGE_KEYS.CONTEXT_PROFILES, []));
+  const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(STORAGE_KEYS.ACTIVE_PROFILE_ID) || '');
 
   // Navigation & filter states
   const [search, setSearch] = useState('');
@@ -55,6 +60,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeView, setActiveView] = useState('customized'); // 'customized' | 'original'
+  const [injectProfileBlock, setInjectProfileBlock] = useState(true);
 
   // Custom prompt modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,8 +74,20 @@ export default function App() {
     models: ['ChatGPT', 'Claude', 'Gemini']
   });
 
+  // Context Profile modal state
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [editingProfileId, setEditingProfileId] = useState(null);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    company_context: '',
+    target_audience: '',
+    brand_voice: '',
+    tech_or_metrics: ''
+  });
+
   const searchInputRef = useRef(null);
   const activeCardRef = useRef(null);
+  const fileImportRef = useRef(null);
 
   // Sync theme
   useEffect(() => {
@@ -92,6 +110,16 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.SAVED_VARS, JSON.stringify(allSavedVars));
   }, [allSavedVars]);
 
+  // Sync context profiles
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.CONTEXT_PROFILES, JSON.stringify(contextProfiles));
+  }, [contextProfiles]);
+
+  // Sync active profile ID
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_PROFILE_ID, activeProfileId);
+  }, [activeProfileId]);
+
   // Sync activePromptId to URL query param without reloading
   useEffect(() => {
     if (!activePromptId) return;
@@ -107,7 +135,13 @@ export default function App() {
     setFavorites(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   }, []);
 
-  // Categories list with SVG icons and dynamic counts
+  // Active Context Profile object
+  const activeProfile = useMemo(() => {
+    if (!activeProfileId) return null;
+    return contextProfiles.find(p => p.id === activeProfileId) || null;
+  }, [contextProfiles, activeProfileId]);
+
+  // Categories list with SVG icons and dynamic counts (9 categories + Favorites + Custom)
   const categories = useMemo(() => [
     { id: 'Tous', label: 'Toutes les catégories', icon: Layers, count: allPrompts.length },
     { id: 'Favoris', label: 'Prompts Favoris', icon: Star, count: allPrompts.filter(p => favorites.includes(p.id)).length },
@@ -120,6 +154,9 @@ export default function App() {
     { id: 'Sales', label: 'Vente & Conversion', icon: ShoppingBag, count: allPrompts.filter(p => p.category?.toLowerCase() === 'sales').length },
     { id: 'Copywriting', label: 'Copywriting & Écriture', icon: PenTool, count: allPrompts.filter(p => p.category?.toLowerCase() === 'copywriting').length },
     { id: 'SEO', label: 'SEO & Visibilité', icon: Globe, count: allPrompts.filter(p => p.category?.toLowerCase() === 'seo').length },
+    { id: 'Automation', label: 'Agents IA & Automatisation', icon: Bot, count: allPrompts.filter(p => p.category?.toLowerCase() === 'automation').length },
+    { id: 'Business', label: 'Productivité & Stratégie', icon: Briefcase, count: allPrompts.filter(p => p.category?.toLowerCase() === 'business').length },
+    { id: 'Finance', label: 'Data, Finance & Analyse', icon: LineChart, count: allPrompts.filter(p => p.category?.toLowerCase() === 'finance').length },
   ], [allPrompts, favorites, customPrompts]);
 
   const modelsList = ['Tous', 'ChatGPT', 'Claude', 'Gemini', 'DeepSeek'];
@@ -155,6 +192,30 @@ export default function App() {
     });
   };
 
+  // Smart variable pre-fill from active Context Profile
+  const handlePrefillFromProfile = () => {
+    if (!activePrompt?.variables_list || !activeProfile) return;
+    const mapped = { ...(allSavedVars[activePrompt.id] || {}) };
+    activePrompt.variables_list.forEach((v, idx) => {
+      const lower = `${v.name} ${v.placeholder}`.toLowerCase();
+      if (lower.match(/audience|target|cible|client|icp|persona|recipient|segment/) && activeProfile.target_audience) {
+        mapped[v.name] = activeProfile.target_audience;
+      } else if (lower.match(/voice|tone|style|brand|marque|ton/) && activeProfile.brand_voice) {
+        mapped[v.name] = activeProfile.brand_voice;
+      } else if (lower.match(/stack|tech|tool|metric|goal|objectif|kpi|budget|data|language/) && activeProfile.tech_or_metrics) {
+        mapped[v.name] = activeProfile.tech_or_metrics;
+      } else if (lower.match(/business|company|product|offer|niche|context|entreprise|offre|service|industry|topic/) && activeProfile.company_context) {
+        mapped[v.name] = activeProfile.company_context;
+      } else if (!mapped[v.name] && idx === 0 && activeProfile.company_context) {
+        mapped[v.name] = activeProfile.company_context;
+      }
+    });
+    setAllSavedVars(prev => ({
+      ...prev,
+      [activePrompt.id]: mapped
+    }));
+  };
+
   // Filtered prompt list
   const filteredPrompts = useMemo(() => {
     return allPrompts.filter(p => {
@@ -179,7 +240,7 @@ export default function App() {
     });
   }, [allPrompts, selectedCategory, selectedModel, search, favorites]);
 
-  // Dynamic live prompt calculation
+  // Dynamic live prompt calculation (with optional active profile context block)
   const computedPrompt = useMemo(() => {
     if (!activePrompt) return '';
     let text = activePrompt.optimized_prompt || '';
@@ -193,8 +254,21 @@ export default function App() {
         }
       });
     }
+
+    if (activeProfile && injectProfileBlock) {
+      const profileLines = [
+        `<workspace_context_profile name="${activeProfile.name}">`,
+        activeProfile.company_context ? `  <company_and_offer>${activeProfile.company_context}</company_and_offer>` : null,
+        activeProfile.target_audience ? `  <target_audience_icp>${activeProfile.target_audience}</target_audience_icp>` : null,
+        activeProfile.brand_voice ? `  <brand_voice_and_style>${activeProfile.brand_voice}</brand_voice_and_style>` : null,
+        activeProfile.tech_or_metrics ? `  <stack_and_constraints>${activeProfile.tech_or_metrics}</stack_and_constraints>` : null,
+        `</workspace_context_profile>\n\n`
+      ].filter(Boolean).join('\n');
+      text = profileLines + text;
+    }
+
     return text;
-  }, [activePrompt, variableInputs]);
+  }, [activePrompt, variableInputs, activeProfile, injectProfileBlock]);
 
   // Count filled variables
   const filledVariablesCount = useMemo(() => {
@@ -250,10 +324,52 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  // Export Workspace Backup (.json)
+  const handleExportWorkspaceJSON = () => {
+    const payload = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      favorites,
+      customPrompts,
+      allSavedVars,
+      contextProfiles,
+      activeProfileId
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `prompt-studio-workspace-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import Workspace Backup (.json)
+  const handleImportWorkspaceJSON = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (Array.isArray(data.favorites)) setFavorites(data.favorites);
+        if (Array.isArray(data.customPrompts)) setCustomPrompts(data.customPrompts);
+        if (data.allSavedVars && typeof data.allSavedVars === 'object') setAllSavedVars(data.allSavedVars);
+        if (Array.isArray(data.contextProfiles)) setContextProfiles(data.contextProfiles);
+        if (typeof data.activeProfileId === 'string') setActiveProfileId(data.activeProfileId);
+      } catch {
+        alert('Fichier de sauvegarde JSON invalide.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   // Keyboard shortcuts: Cmd/Ctrl+K (search), Up/Down (navigate), Cmd/Ctrl+Enter (copy), Esc
   useEffect(() => {
     const onKeyDown = (e) => {
-      // Cmd+K or Ctrl+K -> Focus search
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         if (focusMode) setFocusMode(false);
@@ -262,17 +378,19 @@ export default function App() {
         return;
       }
 
-      // Cmd+Enter or Ctrl+Enter -> Copy active prompt
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !isModalOpen) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !isModalOpen && !isProfileModalOpen) {
         e.preventDefault();
         handleCopy();
         return;
       }
 
-      // Escape -> Close modal or blur search
       if (e.key === 'Escape') {
         if (isModalOpen) {
           setIsModalOpen(false);
+          return;
+        }
+        if (isProfileModalOpen) {
+          setIsProfileModalOpen(false);
           return;
         }
         if (document.activeElement === searchInputRef.current) {
@@ -282,9 +400,8 @@ export default function App() {
         return;
       }
 
-      // Up / Down arrows when not typing in an input/textarea
       const tag = document.activeElement?.tagName?.toLowerCase();
-      if (!isModalOpen && tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+      if (!isModalOpen && !isProfileModalOpen && tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           if (filteredPrompts.length === 0) return;
           e.preventDefault();
@@ -302,7 +419,7 @@ export default function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [filteredPrompts, activePrompt, focusMode, isModalOpen, search, handleCopy]);
+  }, [filteredPrompts, activePrompt, focusMode, isModalOpen, isProfileModalOpen, search, handleCopy]);
 
   // Scroll active card into view on keyboard nav
   useEffect(() => {
@@ -320,7 +437,7 @@ export default function App() {
     setEditingPromptId(null);
     setFormState({
       title_fr: '',
-      category: selectedCategory !== 'Tous' && selectedCategory !== 'Favoris' && selectedCategory !== 'Personnalisés' ? selectedCategory : 'Marketing',
+      category: !['Tous', 'Favoris', 'Personnalisés'].includes(selectedCategory) ? selectedCategory : 'Marketing',
       description_fr: '',
       optimized_prompt: `<system_role>\nYou are a Principal Expert specializing in {{domaine-expertise}}.\n</system_role>\n\n<context_inputs>\n  <objectif>{{objectif-principal}}</objectif>\n</context_inputs>\n\n<execution_guidelines>\n1. Analyze the context thoroughly.\n2. Deliver an actionable, production-ready blueprint.\n</execution_guidelines>`,
       guide_fr: '',
@@ -398,6 +515,59 @@ export default function App() {
     });
   };
 
+  // Context Profile Modal handlers
+  const openNewProfileModal = () => {
+    setEditingProfileId(null);
+    setProfileForm({
+      name: '',
+      company_context: '',
+      target_audience: '',
+      brand_voice: '',
+      tech_or_metrics: ''
+    });
+    setIsProfileModalOpen(true);
+  };
+
+  const openEditProfileModal = (prof) => {
+    setEditingProfileId(prof.id);
+    setProfileForm({
+      name: prof.name || '',
+      company_context: prof.company_context || '',
+      target_audience: prof.target_audience || '',
+      brand_voice: prof.brand_voice || '',
+      tech_or_metrics: prof.tech_or_metrics || ''
+    });
+    setIsProfileModalOpen(true);
+  };
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    if (!profileForm.name.trim()) return;
+    const newProf = {
+      id: editingProfileId || `prof-${Date.now()}`,
+      name: profileForm.name.trim(),
+      company_context: profileForm.company_context.trim(),
+      target_audience: profileForm.target_audience.trim(),
+      brand_voice: profileForm.brand_voice.trim(),
+      tech_or_metrics: profileForm.tech_or_metrics.trim()
+    };
+    setContextProfiles(prev => {
+      if (editingProfileId) {
+        return prev.map(p => p.id === editingProfileId ? newProf : p);
+      }
+      return [...prev, newProf];
+    });
+    setActiveProfileId(newProf.id);
+    setIsProfileModalOpen(false);
+  };
+
+  const handleDeleteProfile = (id) => {
+    setContextProfiles(prev => prev.filter(p => p.id !== id));
+    if (activeProfileId === id) {
+      setActiveProfileId('');
+    }
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -407,6 +577,15 @@ export default function App() {
       backgroundColor: 'var(--bg-core)',
       overflow: 'hidden'
     }}>
+
+      {/* Hidden file input for JSON workspace restore */}
+      <input
+        ref={fileImportRef}
+        type="file"
+        accept=".json"
+        onChange={handleImportWorkspaceJSON}
+        style={{ display: 'none' }}
+      />
 
       {/* MOBILE / TABLET TOP BAR (< 960px) */}
       <header
@@ -496,12 +675,12 @@ export default function App() {
       {/* MAIN 3-COLUMN WORKSPACE */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
-        {/* 1. LEFT COLUMN: CATEGORIES & WORKSPACE SIDEBAR (~235px) */}
+        {/* 1. LEFT COLUMN: CATEGORIES & WORKSPACE SIDEBAR (~242px) */}
         {!focusMode && (
           <nav
             className={`ps-col-sidebar ${mobilePane !== 'sidebar' ? 'ps-col-hidden-mobile' : ''}`}
             style={{
-              width: '238px',
+              width: '244px',
               backgroundColor: 'var(--bg-sidebar)',
               borderRight: '1px solid var(--border-hairline)',
               display: 'flex',
@@ -515,7 +694,7 @@ export default function App() {
             <div>
               {/* Logo & App Name */}
               <div style={{
-                padding: '1.05rem 1rem 0.9rem',
+                padding: '1rem 1rem 0.85rem',
                 borderBottom: '1px solid var(--border-hairline)',
                 display: 'flex',
                 alignItems: 'center',
@@ -545,8 +724,8 @@ export default function App() {
                 </div>
               </div>
 
-              {/* New Custom Prompt CTA */}
-              <div style={{ padding: '0.75rem 0.65rem 0.25rem' }}>
+              {/* Action CTAs: New Custom Prompt & Context Profile */}
+              <div style={{ padding: '0.65rem 0.65rem 0.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <button
                   onClick={openNewPromptModal}
                   style={{
@@ -555,25 +734,93 @@ export default function App() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.45rem',
-                    padding: '7px 10px',
+                    padding: '6px 10px',
                     borderRadius: '7px',
                     border: '1px solid var(--border-focus)',
                     backgroundColor: 'var(--accent-gold-subtle)',
                     color: 'var(--accent-gold)',
-                    fontSize: '0.78rem',
+                    fontSize: '0.76rem',
                     fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
+                    cursor: 'pointer'
                   }}
                 >
                   <Plus size={14} />
                   <span>Nouveau Prompt</span>
                 </button>
+
+                {/* Context Profile Quick Selector */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: 'var(--bg-input)',
+                  border: '1px solid var(--border-hairline)',
+                  borderRadius: '7px',
+                  padding: '3px 6px'
+                }}>
+                  <UserCheck size={13} color={activeProfile ? 'var(--accent-emerald)' : 'var(--text-faint)'} style={{ flexShrink: 0 }} />
+                  <select
+                    value={activeProfileId}
+                    onChange={e => setActiveProfileId(e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      color: activeProfile ? 'var(--text-bright)' : 'var(--text-muted)',
+                      fontSize: '0.73rem',
+                      fontWeight: 600,
+                      outline: 'none',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                    title="Sélectionner un Profil de Contexte Global"
+                  >
+                    <option value="" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-normal)' }}>
+                      Profil : Aucun actif
+                    </option>
+                    {contextProfiles.map(prof => (
+                      <option key={prof.id} value={prof.id} style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-bright)' }}>
+                        Profil : {prof.name}
+                      </option>
+                    ))}
+                  </select>
+                  {activeProfile ? (
+                    <button
+                      onClick={() => openEditProfileModal(activeProfile)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        display: 'flex'
+                      }}
+                      title="Modifier le profil actif"
+                    >
+                      <Edit3 size={12} />
+                    </button>
+                  ) : null}
+                  <button
+                    onClick={openNewProfileModal}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--accent-gold)',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      display: 'flex'
+                    }}
+                    title="Créer un nouveau Profil de Contexte"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
               </div>
 
               {/* Categories Nav Header */}
-              <div style={{ padding: '0.75rem 0.9rem 0.35rem', fontSize: '0.66rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Bibliothèque
+              <div style={{ padding: '0.65rem 0.9rem 0.3rem', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Bibliothèque ({allPrompts.length})
               </div>
 
               {/* Categories list */}
@@ -593,9 +840,9 @@ export default function App() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '6px 10px',
+                        padding: '5px 9px',
                         borderRadius: '7px',
-                        fontSize: '0.79rem',
+                        fontSize: '0.78rem',
                         fontWeight: isSelected ? 700 : 500,
                         border: 'none',
                         backgroundColor: isSelected ? 'var(--bg-highlight)' : 'transparent',
@@ -611,14 +858,14 @@ export default function App() {
                         if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-                        <Icon size={14} color={isSelected ? 'var(--accent-gold)' : (hasPrompts ? 'var(--text-muted)' : 'var(--text-faint)')} />
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '138px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Icon size={13} color={isSelected ? 'var(--accent-gold)' : (hasPrompts ? 'var(--text-muted)' : 'var(--text-faint)')} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '145px' }}>
                           {cat.label}
                         </span>
                       </div>
                       <span style={{
-                        fontSize: '0.67rem',
+                        fontSize: '0.66rem',
                         padding: '1px 5px',
                         borderRadius: '4px',
                         backgroundColor: isSelected ? 'var(--accent-gold-subtle)' : 'var(--border-hairline)',
@@ -633,7 +880,7 @@ export default function App() {
               </div>
 
               {/* Model Filter Section */}
-              <div style={{ padding: '1.1rem 0.9rem 0.35rem', fontSize: '0.66rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ padding: '0.85rem 0.9rem 0.3rem', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Modèle Cible
               </div>
               <div style={{ padding: '0 0.5rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -646,9 +893,9 @@ export default function App() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        padding: '5px 10px',
+                        padding: '4px 9px',
                         borderRadius: '6px',
-                        fontSize: '0.77rem',
+                        fontSize: '0.76rem',
                         fontWeight: isSelected ? 700 : 500,
                         border: 'none',
                         backgroundColor: isSelected ? 'var(--bg-highlight)' : 'transparent',
@@ -657,7 +904,7 @@ export default function App() {
                         transition: 'all 0.12s ease'
                       }}
                     >
-                      <Cpu size={13} style={{ marginRight: '0.5rem', opacity: isSelected ? 1 : 0.6 }} />
+                      <Cpu size={12} style={{ marginRight: '0.45rem', opacity: isSelected ? 1 : 0.6 }} />
                       <span>{m}</span>
                     </button>
                   );
@@ -665,23 +912,71 @@ export default function App() {
               </div>
             </div>
 
-            {/* Sidebar Footer: Shortcuts hint, Notion status & theme toggle */}
+            {/* Sidebar Footer: Workspace JSON Backup/Restore, Shortcuts, Notion status & theme */}
             <div style={{
-              padding: '0.75rem 0.9rem',
+              padding: '0.7rem 0.85rem',
               borderTop: '1px solid var(--border-hairline)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.55rem'
+              gap: '0.5rem'
             }}>
+              {/* Backup & Restore JSON */}
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button
+                  onClick={handleExportWorkspaceJSON}
+                  style={{
+                    flex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    padding: '4px 6px',
+                    borderRadius: '5px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-card)',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                  title="Exporter vos favoris, profils et prompts sur-mesure en JSON"
+                >
+                  <Save size={11} />
+                  <span>Backup .json</span>
+                </button>
+                <button
+                  onClick={() => fileImportRef.current?.click()}
+                  style={{
+                    flex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    padding: '4px 6px',
+                    borderRadius: '5px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-card)',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                  title="Restaurer un fichier de sauvegarde JSON"
+                >
+                  <Upload size={11} />
+                  <span>Importer</span>
+                </button>
+              </div>
+
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                fontSize: '0.68rem',
+                fontSize: '0.66rem',
                 color: 'var(--text-faint)'
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Keyboard size={12} /> Raccourcis
+                  <Keyboard size={11} /> Raccourcis
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)' }}>⌘K • ↑↓ • ⌘↵</span>
               </div>
@@ -691,7 +986,7 @@ export default function App() {
                 alignItems: 'center',
                 justifyContent: 'space-between'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.71rem', color: 'var(--text-muted)' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-emerald)', boxShadow: '0 0 5px var(--accent-emerald)' }} />
                   <span>Notion Sync ({allPrompts.length})</span>
                 </div>
@@ -702,8 +997,8 @@ export default function App() {
                     background: 'transparent',
                     border: '1px solid var(--border-hairline)',
                     borderRadius: '6px',
-                    width: '26px',
-                    height: '26px',
+                    width: '25px',
+                    height: '25px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -928,7 +1223,7 @@ export default function App() {
                 flexWrap: 'wrap',
                 gap: '0.5rem'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => setFocusMode(prev => !prev)}
                     style={{
@@ -968,7 +1263,7 @@ export default function App() {
                 </div>
 
                 {/* Right utility actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => toggleFavorite(activePrompt.id)}
                     style={{
@@ -1212,6 +1507,60 @@ export default function App() {
                 </div>
               </div>
 
+              {/* ACTIVE CONTEXT PROFILE BAR (When a profile is selected) */}
+              {activeView === 'customized' && activeProfile && (
+                <div style={{
+                  marginBottom: '1rem',
+                  padding: '0.7rem 1rem',
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--accent-emerald-subtle)',
+                  border: '1px solid rgba(16, 185, 129, 0.28)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.78rem', color: 'var(--text-bright)' }}>
+                    <UserCheck size={14} color="var(--accent-emerald)" />
+                    <span>Profil de Contexte actif : <strong>{activeProfile.name}</strong></span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.73rem', color: 'var(--text-normal)', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={injectProfileBlock}
+                        onChange={e => setInjectProfileBlock(e.target.checked)}
+                      />
+                      <span>Injecter le bloc XML de profil</span>
+                    </label>
+
+                    {activePrompt.variables_list && activePrompt.variables_list.length > 0 && (
+                      <button
+                        onClick={handlePrefillFromProfile}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 9px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-focus)',
+                          backgroundColor: 'var(--bg-card)',
+                          color: 'var(--accent-gold)',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Wand2 size={12} />
+                        <span>Pré-remplir les variables</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* DYNAMIC VARIABLES INPUTS (Only in customized view) */}
               {activeView === 'customized' && activePrompt.variables_list && activePrompt.variables_list.length > 0 && (
                 <div style={{
@@ -1258,28 +1607,53 @@ export default function App() {
                       </span>
                     </div>
 
-                    {filledVariablesCount > 0 && (
-                      <button
-                        onClick={handleResetVariables}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                          padding: '4px 9px',
-                          borderRadius: '6px',
-                          border: '1px solid var(--border-hairline)',
-                          backgroundColor: 'transparent',
-                          color: 'var(--text-muted)',
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                        title="Vider toutes les variables de ce prompt"
-                      >
-                        <RotateCcw size={12} />
-                        <span>Réinitialiser</span>
-                      </button>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      {!activeProfile && (
+                        <button
+                          onClick={openNewProfileModal}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            padding: '4px 9px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'transparent',
+                            color: 'var(--accent-gold)',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                          title="Créer un profil de contexte réutilisable"
+                        >
+                          <Wand2 size={12} />
+                          <span>Créer un Profil de Contexte</span>
+                        </button>
+                      )}
+
+                      {filledVariablesCount > 0 && (
+                        <button
+                          onClick={handleResetVariables}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            padding: '4px 9px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'transparent',
+                            color: 'var(--text-muted)',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                          title="Vider toutes les variables de ce prompt"
+                        >
+                          <RotateCcw size={12} />
+                          <span>Réinitialiser</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div
@@ -1428,7 +1802,7 @@ export default function App() {
 
       </div>
 
-      {/* MODAL: CREATE / EDIT CUSTOM PROMPT */}
+      {/* MODAL 1: CREATE / EDIT CUSTOM PROMPT */}
       {isModalOpen && (
         <div
           onClick={() => setIsModalOpen(false)}
@@ -1521,12 +1895,15 @@ export default function App() {
                       outline: 'none'
                     }}
                   >
-                    <option value="Marketing">Marketing</option>
-                    <option value="Coding">Coding</option>
-                    <option value="Design">Design</option>
-                    <option value="Sales">Sales</option>
-                    <option value="Copywriting">Copywriting</option>
-                    <option value="SEO">SEO</option>
+                    <option value="Marketing">Marketing & Croissance</option>
+                    <option value="Coding">Code & Développement</option>
+                    <option value="Design">Design & Visuels</option>
+                    <option value="Sales">Vente & Conversion</option>
+                    <option value="Copywriting">Copywriting & Écriture</option>
+                    <option value="SEO">SEO & Visibilité</option>
+                    <option value="Automation">Agents IA & Automatisation</option>
+                    <option value="Business">Productivité & Stratégie</option>
+                    <option value="Finance">Data, Finance & Analyse</option>
                   </select>
                 </div>
               </div>
@@ -1675,6 +2052,239 @@ export default function App() {
                 >
                   {editingPromptId ? 'Enregistrer les modifications' : 'Ajouter à ma Bibliothèque'}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: CREATE / EDIT CONTEXT PROFILE */}
+      {isProfileModalOpen && (
+        <div
+          onClick={() => setIsProfileModalOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'var(--bg-modal-backdrop)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 100
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '600px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-card)',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <UserCheck size={16} color="var(--accent-emerald)" />
+                <h2 style={{ fontSize: '1.08rem', fontWeight: 800, color: 'var(--text-bright)' }}>
+                  {editingProfileId ? 'Modifier le Profil de Contexte' : 'Nouveau Profil de Contexte Global'}
+                </h2>
+              </div>
+              <button
+                onClick={() => setIsProfileModalOpen(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '1.1rem', lineHeight: 1.5 }}>
+              Enregistrez le contexte récurrent d'un projet, d'une marque ou d'un client pour pré-remplir les variables en un clic ou l'injecter automatiquement dans vos prompts.
+            </p>
+
+            <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.25rem' }}>
+                  Nom du Profil *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Mon SaaS B2B / Agence Créative / Client E-Commerce"
+                  value={profileForm.name}
+                  onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-bright)',
+                    fontSize: '0.82rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.25rem' }}>
+                  Entreprise, Offre & Proposition de Valeur
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ex: Plateforme SaaS d'automatisation comptable pour PME..."
+                  value={profileForm.company_context}
+                  onChange={e => setProfileForm({ ...profileForm, company_context: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-bright)',
+                    fontSize: '0.8rem',
+                    fontFamily: 'var(--font-main)',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.25rem' }}>
+                  Audience Cible & Profil Client Idéal (ICP)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Dirigeants de PME (10-50 salariés), Directeurs Financiers, Fondateurs Tech"
+                  value={profileForm.target_audience}
+                  onChange={e => setProfileForm({ ...profileForm, target_audience: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-bright)',
+                    fontSize: '0.8rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.25rem' }}>
+                  Ton, Voix de Marque & Style Éditorial
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Direct, chirurgical, orienté ROI, sans jargon creux, vouvoiement"
+                  value={profileForm.brand_voice}
+                  onChange={e => setProfileForm({ ...profileForm, brand_voice: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-bright)',
+                    fontSize: '0.8rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.25rem' }}>
+                  Stack Technique, Outils ou Objectifs Chiffrés
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Next.js, TypeScript, Supabase, Stripe | Objectif : +25% conversion"
+                  value={profileForm.tech_or_metrics}
+                  onChange={e => setProfileForm({ ...profileForm, tech_or_metrics: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-bright)',
+                    fontSize: '0.8rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                {editingProfileId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDeleteProfile(editingProfileId);
+                      setIsProfileModalOpen(false);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '7px 12px',
+                      borderRadius: '7px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--accent-danger-subtle)',
+                      color: 'var(--accent-danger)',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Trash2 size={13} />
+                    <span>Supprimer</span>
+                  </button>
+                ) : <div />}
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileModalOpen(false)}
+                    style={{
+                      padding: '7px 14px',
+                      borderRadius: '7px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'transparent',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '7px 16px',
+                      borderRadius: '7px',
+                      border: 'none',
+                      backgroundColor: 'var(--accent-gold)',
+                      color: '#000',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Enregistrer le Profil
+                  </button>
+                </div>
               </div>
             </form>
           </div>
