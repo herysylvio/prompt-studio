@@ -59,7 +59,14 @@ La bibliothèque compte actuellement 108 prompts opérationnels parfaitement éq
 - **Data, Finance & Analyse** (12 prompts) : Projections financières & P&L, prévisionnel de trésorerie & BFR, stratégie de Pricing Power, analyse de rentabilité (ROI/TRI/VAN), stress-test de trésorerie, rapports d'analyse de données, audit Unit Economics (LTV/CAC), architecture plateforme BI, budgets prévisionnels projets, contrôle de gestion agile, accélération du cash-flow, plan de marquage analytique GA4/GTM.
 
 Les données de production sont stockées dans :
-`src/data/prompts.json`
+- `src/data/prompts.json` (108 prompts répartis dans les 9 catégories)
+- `src/data/playbooks.json` (6 Playbooks Multi-Étapes de 5 étapes chacun pour enchaîner les prompts de façon guidée)
+
+Fonctionnalités avancées de l'Atelier (`src/App.jsx`) :
+- **Playbooks Guidés** : Parcours séquentiels avec suivi de progression (`localStorage`), notes de transition entre les étapes et navigation directe.
+- **Profils de Contexte Global** : Injection automatique d'un bloc `<workspace_context_profile>` et pré-remplissage intelligent des variables.
+- **Studio XML Colorisé & Édition Live** : Coloration syntaxique des balises XML et variables `{{...}}`, compteur de tokens estimés en temps réel (`~X tokens`) et mode d'édition libre du prompt final avant copie ou export `.md`.
+- **Backup & Restore JSON** : Export et import complet de l'espace utilisateur (Favoris, Prompts Sur-Mesure, Profils de Contexte, Progression Playbooks).
 
 ---
 

@@ -5,9 +5,11 @@ import {
   ShoppingBag, PenTool, FileCode, Star, Plus, Download, Link2,
   RotateCcw, PanelLeftClose, PanelLeftOpen, Command, FileText,
   Trash2, Edit3, X, FolderHeart, CheckCircle2, Keyboard, ListFilter,
-  Bot, Briefcase, LineChart, UserCheck, Wand2, Upload, Save
+  Bot, Briefcase, LineChart, UserCheck, Wand2, Upload, Save,
+  Compass, ChevronRight, ChevronLeft, Eye
 } from 'lucide-react';
 import promptsData from './data/prompts.json';
+import playbooksData from './data/playbooks.json';
 
 const STORAGE_KEYS = {
   THEME: 'ps_theme_v1',
@@ -16,6 +18,7 @@ const STORAGE_KEYS = {
   SAVED_VARS: 'ps_saved_vars_v1',
   CONTEXT_PROFILES: 'ps_context_profiles_v1',
   ACTIVE_PROFILE_ID: 'ps_active_profile_id_v1',
+  PLAYBOOK_PROGRESS: 'ps_playbook_progress_v1',
 };
 
 function safeLoadJSON(key, fallback) {
@@ -27,6 +30,73 @@ function safeLoadJSON(key, fallback) {
   }
 }
 
+// Lightweight syntax highlighter for XML tags, Markdown headings, and {{variables}}
+function HighlightedPrompt({ text }) {
+  if (!text) return null;
+  const lines = text.split('\n');
+
+  const renderInlineTokens = (line, lineIdx) => {
+    // Tokenize XML tags <...> and placeholders {{...}}
+    const parts = line.split(/(<\/?[a-zA-Z0-9_:-]+(?:\s+[^>]*)?>|\{\{[^}]+\}\})/g);
+    return parts.map((part, i) => {
+      if (!part) return null;
+      if (/^<\/?[a-zA-Z0-9_:-]+(?:\s+[^>]*)?>$/.test(part)) {
+        return (
+          <span
+            key={`${lineIdx}-${i}`}
+            style={{ color: 'var(--accent-gold)', fontWeight: 600 }}
+          >
+            {part}
+          </span>
+        );
+      }
+      if (/^\{\{[^}]+\}\}$/.test(part)) {
+        return (
+          <span
+            key={`${lineIdx}-${i}`}
+            style={{
+              backgroundColor: 'var(--accent-gold-subtle)',
+              color: 'var(--accent-gold)',
+              padding: '1px 5px',
+              borderRadius: '4px',
+              border: '1px solid var(--border-focus)',
+              fontWeight: 600
+            }}
+          >
+            {part}
+          </span>
+        );
+      }
+      return <React.Fragment key={`${lineIdx}-${i}`}>{part}</React.Fragment>;
+    });
+  };
+
+  return (
+    <>
+      {lines.map((line, idx) => {
+        const isHeading = /^#{1,4}\s/.test(line.trim());
+        const isComment = /^<!--.*-->$/.test(line.trim());
+        return (
+          <div
+            key={idx}
+            style={{
+              color: isHeading
+                ? 'var(--text-bright)'
+                : isComment
+                ? 'var(--text-faint)'
+                : 'var(--text-normal)',
+              fontWeight: isHeading ? 700 : 400,
+              minHeight: line === '' ? '0.85em' : 'auto'
+            }}
+          >
+            {renderInlineTokens(line, idx)}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 export default function App() {
   // Persisted states
   const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_KEYS.THEME) || 'dark');
@@ -35,11 +105,13 @@ export default function App() {
   const [allSavedVars, setAllSavedVars] = useState(() => safeLoadJSON(STORAGE_KEYS.SAVED_VARS, {}));
   const [contextProfiles, setContextProfiles] = useState(() => safeLoadJSON(STORAGE_KEYS.CONTEXT_PROFILES, []));
   const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(STORAGE_KEYS.ACTIVE_PROFILE_ID) || '');
+  const [playbookProgress, setPlaybookProgress] = useState(() => safeLoadJSON(STORAGE_KEYS.PLAYBOOK_PROGRESS, {}));
 
   // Navigation & filter states
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [selectedModel, setSelectedModel] = useState('Tous');
+  const [activePlaybookId, setActivePlaybookId] = useState(null);
   const [focusMode, setFocusMode] = useState(false);
   const [mobilePane, setMobilePane] = useState('workbench'); // 'sidebar' | 'feed' | 'workbench'
 
@@ -61,6 +133,8 @@ export default function App() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeView, setActiveView] = useState('customized'); // 'customized' | 'original'
   const [injectProfileBlock, setInjectProfileBlock] = useState(true);
+  const [isLiveEditing, setIsLiveEditing] = useState(false);
+  const [manualPromptText, setManualPromptText] = useState(null);
 
   // Custom prompt modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,6 +194,17 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.ACTIVE_PROFILE_ID, activeProfileId);
   }, [activeProfileId]);
 
+  // Sync playbook progress
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PLAYBOOK_PROGRESS, JSON.stringify(playbookProgress));
+  }, [playbookProgress]);
+
+  // Reset live manual edit override when switching prompt
+  useEffect(() => {
+    setIsLiveEditing(false);
+    setManualPromptText(null);
+  }, [activePromptId]);
+
   // Sync activePromptId to URL query param without reloading
   useEffect(() => {
     if (!activePromptId) return;
@@ -140,6 +225,34 @@ export default function App() {
     if (!activeProfileId) return null;
     return contextProfiles.find(p => p.id === activeProfileId) || null;
   }, [contextProfiles, activeProfileId]);
+
+  // Active Playbook object & current step
+  const activePlaybook = useMemo(() => {
+    if (!activePlaybookId) return null;
+    return playbooksData.find(pb => pb.id === activePlaybookId) || null;
+  }, [activePlaybookId]);
+
+  const activePlaybookStep = useMemo(() => {
+    if (!activePlaybook) return null;
+    return activePlaybook.steps.find(s => s.promptId === activePromptId) || activePlaybook.steps[0];
+  }, [activePlaybook, activePromptId]);
+
+  const togglePlaybookStepDone = (playbookId, stepNumber, e) => {
+    if (e) e.stopPropagation();
+    const key = `${playbookId}:${stepNumber}`;
+    setPlaybookProgress(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const handleSelectPlaybook = (pb) => {
+    setActivePlaybookId(pb.id);
+    if (pb.steps?.[0]?.promptId) {
+      setActivePromptId(pb.steps[0].promptId);
+    }
+    setMobilePane('feed');
+  };
 
   // Categories list with SVG icons and dynamic counts (9 categories + Favorites + Custom)
   const categories = useMemo(() => [
@@ -174,6 +287,7 @@ export default function App() {
 
   const handleVariableChange = (varName, value) => {
     if (!activePrompt) return;
+    setManualPromptText(null);
     setAllSavedVars(prev => ({
       ...prev,
       [activePrompt.id]: {
@@ -185,6 +299,7 @@ export default function App() {
 
   const handleResetVariables = () => {
     if (!activePrompt) return;
+    setManualPromptText(null);
     setAllSavedVars(prev => {
       const next = { ...prev };
       delete next[activePrompt.id];
@@ -195,6 +310,7 @@ export default function App() {
   // Smart variable pre-fill from active Context Profile
   const handlePrefillFromProfile = () => {
     if (!activePrompt?.variables_list || !activeProfile) return;
+    setManualPromptText(null);
     const mapped = { ...(allSavedVars[activePrompt.id] || {}) };
     activePrompt.variables_list.forEach((v, idx) => {
       const lower = `${v.name} ${v.placeholder}`.toLowerCase();
@@ -270,6 +386,18 @@ export default function App() {
     return text;
   }, [activePrompt, variableInputs, activeProfile, injectProfileBlock]);
 
+  // Effective prompt text (manual live edit override or computedPrompt)
+  const effectiveCustomizedPrompt = manualPromptText !== null ? manualPromptText : computedPrompt;
+
+  // Displayed code text & estimated tokens
+  const displayedPromptText = activeView === 'customized'
+    ? effectiveCustomizedPrompt
+    : (activePrompt?.original_prompt || 'Structure source non disponible pour ce module.');
+
+  const estimatedTokens = useMemo(() => {
+    return Math.max(1, Math.ceil((displayedPromptText || '').length / 3.8));
+  }, [displayedPromptText]);
+
   // Count filled variables
   const filledVariablesCount = useMemo(() => {
     if (!activePrompt?.variables_list) return 0;
@@ -279,11 +407,11 @@ export default function App() {
   // Copy handler
   const handleCopy = useCallback(() => {
     if (!activePrompt) return;
-    const text = activeView === 'customized' ? computedPrompt : (activePrompt.original_prompt || computedPrompt);
+    const text = activeView === 'customized' ? effectiveCustomizedPrompt : (activePrompt.original_prompt || effectiveCustomizedPrompt);
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [activePrompt, activeView, computedPrompt]);
+  }, [activePrompt, activeView, effectiveCustomizedPrompt]);
 
   // Copy direct share link
   const handleCopyLink = () => {
@@ -308,7 +436,7 @@ export default function App() {
       ``,
       `## Prompt Optimisé (Prêt à l'emploi)`,
       '```markdown',
-      computedPrompt,
+      effectiveCustomizedPrompt,
       '```',
       activePrompt.guide_fr ? `\n## Directive Stratégique d'Exécution\n${activePrompt.guide_fr}\n` : ''
     ].join('\n');
@@ -327,13 +455,14 @@ export default function App() {
   // Export Workspace Backup (.json)
   const handleExportWorkspaceJSON = () => {
     const payload = {
-      version: '1.0',
+      version: '1.1',
       exportedAt: new Date().toISOString(),
       favorites,
       customPrompts,
       allSavedVars,
       contextProfiles,
-      activeProfileId
+      activeProfileId,
+      playbookProgress
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -359,6 +488,7 @@ export default function App() {
         if (data.allSavedVars && typeof data.allSavedVars === 'object') setAllSavedVars(data.allSavedVars);
         if (Array.isArray(data.contextProfiles)) setContextProfiles(data.contextProfiles);
         if (typeof data.activeProfileId === 'string') setActiveProfileId(data.activeProfileId);
+        if (data.playbookProgress && typeof data.playbookProgress === 'object') setPlaybookProgress(data.playbookProgress);
       } catch {
         alert('Fichier de sauvegarde JSON invalide.');
       }
@@ -373,6 +503,7 @@ export default function App() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         if (focusMode) setFocusMode(false);
+        setActivePlaybookId(null);
         setMobilePane('feed');
         setTimeout(() => searchInputRef.current?.focus(), 20);
         return;
@@ -393,6 +524,10 @@ export default function App() {
           setIsProfileModalOpen(false);
           return;
         }
+        if (isLiveEditing) {
+          setIsLiveEditing(false);
+          return;
+        }
         if (document.activeElement === searchInputRef.current) {
           if (search) setSearch('');
           else searchInputRef.current.blur();
@@ -403,6 +538,17 @@ export default function App() {
       const tag = document.activeElement?.tagName?.toLowerCase();
       if (!isModalOpen && !isProfileModalOpen && tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          if (activePlaybook) {
+            e.preventDefault();
+            const steps = activePlaybook.steps;
+            const currentIdx = steps.findIndex(s => s.promptId === activePrompt?.id);
+            const nextIdx = e.key === 'ArrowDown'
+              ? (currentIdx < steps.length - 1 ? currentIdx + 1 : 0)
+              : (currentIdx > 0 ? currentIdx - 1 : steps.length - 1);
+            setActivePromptId(steps[nextIdx].promptId);
+            return;
+          }
+
           if (filteredPrompts.length === 0) return;
           e.preventDefault();
           const currentIndex = filteredPrompts.findIndex(p => p.id === activePrompt?.id);
@@ -419,7 +565,7 @@ export default function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [filteredPrompts, activePrompt, focusMode, isModalOpen, isProfileModalOpen, search, handleCopy]);
+  }, [filteredPrompts, activePrompt, activePlaybook, focusMode, isModalOpen, isProfileModalOpen, isLiveEditing, search, handleCopy]);
 
   // Scroll active card into view on keyboard nav
   useEffect(() => {
@@ -637,7 +783,7 @@ export default function App() {
             }}
           >
             <ListFilter size={13} />
-            <span>Filtres</span>
+            <span>Navigation</span>
           </button>
           <button
             onClick={() => setMobilePane('feed')}
@@ -652,7 +798,7 @@ export default function App() {
               cursor: 'pointer'
             }}
           >
-            Catalogue ({filteredPrompts.length})
+            {activePlaybook ? 'Étapes' : `Catalogue (${filteredPrompts.length})`}
           </button>
           <button
             onClick={() => setMobilePane('workbench')}
@@ -675,12 +821,12 @@ export default function App() {
       {/* MAIN 3-COLUMN WORKSPACE */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
-        {/* 1. LEFT COLUMN: CATEGORIES & WORKSPACE SIDEBAR (~242px) */}
+        {/* 1. LEFT COLUMN: CATEGORIES, PLAYBOOKS & WORKSPACE SIDEBAR (~248px) */}
         {!focusMode && (
           <nav
             className={`ps-col-sidebar ${mobilePane !== 'sidebar' ? 'ps-col-hidden-mobile' : ''}`}
             style={{
-              width: '244px',
+              width: '248px',
               backgroundColor: 'var(--bg-sidebar)',
               borderRight: '1px solid var(--border-hairline)',
               display: 'flex',
@@ -694,7 +840,7 @@ export default function App() {
             <div>
               {/* Logo & App Name */}
               <div style={{
-                padding: '1rem 1rem 0.85rem',
+                padding: '0.95rem 1rem 0.8rem',
                 borderBottom: '1px solid var(--border-hairline)',
                 display: 'flex',
                 alignItems: 'center',
@@ -725,7 +871,7 @@ export default function App() {
               </div>
 
               {/* Action CTAs: New Custom Prompt & Context Profile */}
-              <div style={{ padding: '0.65rem 0.65rem 0.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div style={{ padding: '0.6rem 0.65rem 0.2rem', display: 'flex', flexDirection: 'column', gap: '0.38rem' }}>
                 <button
                   onClick={openNewPromptModal}
                   style={{
@@ -739,7 +885,7 @@ export default function App() {
                     border: '1px solid var(--border-focus)',
                     backgroundColor: 'var(--accent-gold-subtle)',
                     color: 'var(--accent-gold)',
-                    fontSize: '0.76rem',
+                    fontSize: '0.75rem',
                     fontWeight: 700,
                     cursor: 'pointer'
                   }}
@@ -767,7 +913,7 @@ export default function App() {
                       background: 'transparent',
                       border: 'none',
                       color: activeProfile ? 'var(--text-bright)' : 'var(--text-muted)',
-                      fontSize: '0.73rem',
+                      fontSize: '0.72rem',
                       fontWeight: 600,
                       outline: 'none',
                       cursor: 'pointer',
@@ -818,21 +964,72 @@ export default function App() {
                 </div>
               </div>
 
+              {/* PLAYBOOKS SECTION */}
+              <div style={{ padding: '0.6rem 0.9rem 0.25rem', fontSize: '0.64rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Playbooks Multi-Étapes ({playbooksData.length})
+              </div>
+              <div style={{ padding: '0 0.5rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {playbooksData.map(pb => {
+                  const isSelected = activePlaybookId === pb.id;
+                  const doneCount = pb.steps.filter(s => playbookProgress[`${pb.id}:${s.stepNumber}`]).length;
+                  return (
+                    <button
+                      key={pb.id}
+                      onClick={() => handleSelectPlaybook(pb)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '5px 9px',
+                        borderRadius: '7px',
+                        fontSize: '0.75rem',
+                        fontWeight: isSelected ? 700 : 500,
+                        border: 'none',
+                        backgroundColor: isSelected ? 'var(--bg-highlight)' : 'transparent',
+                        color: isSelected ? 'var(--accent-gold)' : 'var(--text-normal)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.12s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
+                        <Compass size={13} color={isSelected ? 'var(--accent-gold)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {pb.title_fr}
+                        </span>
+                      </div>
+                      <span style={{
+                        fontSize: '0.64rem',
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        backgroundColor: doneCount === pb.steps.length ? 'var(--accent-emerald-subtle)' : 'var(--border-hairline)',
+                        color: doneCount === pb.steps.length ? 'var(--accent-emerald)' : 'var(--text-faint)',
+                        fontFamily: 'var(--font-mono)',
+                        flexShrink: 0
+                      }}>
+                        {doneCount}/{pb.steps.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Categories Nav Header */}
-              <div style={{ padding: '0.65rem 0.9rem 0.3rem', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Bibliothèque ({allPrompts.length})
+              <div style={{ padding: '0.65rem 0.9rem 0.25rem', fontSize: '0.64rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Catégories ({allPrompts.length})
               </div>
 
               {/* Categories list */}
               <div style={{ padding: '0 0.5rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {categories.map(cat => {
                   const Icon = cat.icon;
-                  const isSelected = selectedCategory === cat.id;
+                  const isSelected = !activePlaybookId && selectedCategory === cat.id;
                   const hasPrompts = cat.count > 0;
                   return (
                     <button
                       key={cat.id}
                       onClick={() => {
+                        setActivePlaybookId(null);
                         setSelectedCategory(cat.id);
                         setMobilePane('feed');
                       }}
@@ -842,7 +1039,7 @@ export default function App() {
                         justifyContent: 'space-between',
                         padding: '5px 9px',
                         borderRadius: '7px',
-                        fontSize: '0.78rem',
+                        fontSize: '0.76rem',
                         fontWeight: isSelected ? 700 : 500,
                         border: 'none',
                         backgroundColor: isSelected ? 'var(--bg-highlight)' : 'transparent',
@@ -860,12 +1057,12 @@ export default function App() {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Icon size={13} color={isSelected ? 'var(--accent-gold)' : (hasPrompts ? 'var(--text-muted)' : 'var(--text-faint)')} />
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '145px' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '148px' }}>
                           {cat.label}
                         </span>
                       </div>
                       <span style={{
-                        fontSize: '0.66rem',
+                        fontSize: '0.65rem',
                         padding: '1px 5px',
                         borderRadius: '4px',
                         backgroundColor: isSelected ? 'var(--accent-gold-subtle)' : 'var(--border-hairline)',
@@ -880,7 +1077,7 @@ export default function App() {
               </div>
 
               {/* Model Filter Section */}
-              <div style={{ padding: '0.85rem 0.9rem 0.3rem', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ padding: '0.75rem 0.9rem 0.25rem', fontSize: '0.64rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Modèle Cible
               </div>
               <div style={{ padding: '0 0.5rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -889,13 +1086,16 @@ export default function App() {
                   return (
                     <button
                       key={m}
-                      onClick={() => setSelectedModel(m)}
+                      onClick={() => {
+                        setActivePlaybookId(null);
+                        setSelectedModel(m);
+                      }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         padding: '4px 9px',
                         borderRadius: '6px',
-                        fontSize: '0.76rem',
+                        fontSize: '0.75rem',
                         fontWeight: isSelected ? 700 : 500,
                         border: 'none',
                         backgroundColor: isSelected ? 'var(--bg-highlight)' : 'transparent',
@@ -914,13 +1114,12 @@ export default function App() {
 
             {/* Sidebar Footer: Workspace JSON Backup/Restore, Shortcuts, Notion status & theme */}
             <div style={{
-              padding: '0.7rem 0.85rem',
+              padding: '0.65rem 0.85rem',
               borderTop: '1px solid var(--border-hairline)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.5rem'
+              gap: '0.45rem'
             }}>
-              {/* Backup & Restore JSON */}
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button
                   onClick={handleExportWorkspaceJSON}
@@ -939,7 +1138,7 @@ export default function App() {
                     fontWeight: 600,
                     cursor: 'pointer'
                   }}
-                  title="Exporter vos favoris, profils et prompts sur-mesure en JSON"
+                  title="Exporter vos favoris, profils, progressions et prompts sur-mesure en JSON"
                 >
                   <Save size={11} />
                   <span>Backup .json</span>
@@ -972,7 +1171,7 @@ export default function App() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                fontSize: '0.66rem',
+                fontSize: '0.65rem',
                 color: 'var(--text-faint)'
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -986,7 +1185,7 @@ export default function App() {
                 alignItems: 'center',
                 justifyContent: 'space-between'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.71rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-emerald)', boxShadow: '0 0 5px var(--accent-emerald)' }} />
                   <span>Notion Sync ({allPrompts.length})</span>
                 </div>
@@ -1014,12 +1213,12 @@ export default function App() {
           </nav>
         )}
 
-        {/* 2. MIDDLE COLUMN: MODULES FEED (~325px) */}
+        {/* 2. MIDDLE COLUMN: MODULES FEED OR PLAYBOOK STEPS (~328px) */}
         {!focusMode && (
           <section
             className={`ps-col-feed ${mobilePane !== 'feed' ? 'ps-col-hidden-mobile' : ''}`}
             style={{
-              width: '325px',
+              width: '328px',
               backgroundColor: 'var(--bg-feed)',
               borderRight: '1px solid var(--border-hairline)',
               display: 'flex',
@@ -1027,166 +1226,282 @@ export default function App() {
               flexShrink: 0
             }}
           >
-            {/* Search header */}
-            <div style={{
-              padding: '0.75rem',
-              borderBottom: '1px solid var(--border-hairline)'
-            }}>
-              <div style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                <Search size={14} color="var(--text-faint)" style={{ position: 'absolute', left: '10px', pointerEvents: 'none' }} />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Rechercher un prompt (⌘K)..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '6px 28px 6px 30px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--border-hairline)',
-                    backgroundColor: 'var(--bg-input)',
-                    color: 'var(--text-bright)',
-                    fontSize: '0.8rem',
-                    outline: 'none'
-                  }}
-                />
-                {search && (
-                  <button
-                    onClick={() => setSearch('')}
-                    style={{
-                      position: 'absolute',
-                      right: '8px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--text-faint)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                    title="Effacer la recherche"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.7rem', color: 'var(--text-faint)', padding: '0 2px' }}>
-                <span>{selectedCategory === 'Tous' ? 'Tous les modules' : selectedCategory}</span>
-                <span>{filteredPrompts.length} module{filteredPrompts.length > 1 ? 's' : ''}</span>
-              </div>
-            </div>
-
-            {/* Modules list */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0.4rem' }}>
-              {filteredPrompts.length === 0 ? (
-                <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-faint)', fontSize: '0.8rem' }}>
-                  Aucun prompt ne correspond à votre sélection.
-                </div>
-              ) : (
-                filteredPrompts.map((p, idx) => {
-                  const isActive = p.id === activePrompt?.id;
-                  const isFav = favorites.includes(p.id);
-                  return (
-                    <div
-                      key={p.id}
-                      ref={isActive ? activeCardRef : null}
-                      onClick={() => {
-                        setActivePromptId(p.id);
-                        setMobilePane('workbench');
-                      }}
+            {activePlaybook ? (
+              /* PLAYBOOK GUIDED STEPS LIST */
+              <>
+                <div style={{
+                  padding: '0.85rem',
+                  borderBottom: '1px solid var(--border-hairline)',
+                  backgroundColor: 'var(--bg-card)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    <span style={{
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      backgroundColor: 'var(--accent-gold-subtle)',
+                      color: 'var(--accent-gold)'
+                    }}>
+                      Playbook • {activePlaybook.badge}
+                    </span>
+                    <button
+                      onClick={() => setActivePlaybookId(null)}
                       style={{
-                        padding: '0.75rem 0.85rem',
-                        borderRadius: '8px',
-                        marginBottom: '0.3rem',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.7rem',
                         cursor: 'pointer',
-                        border: isActive ? '1px solid var(--border-focus)' : '1px solid transparent',
-                        backgroundColor: isActive ? 'var(--bg-card)' : 'transparent',
-                        boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
-                        transition: 'all 0.12s ease'
-                      }}
-                      onMouseEnter={e => {
-                        if (!isActive) e.currentTarget.style.backgroundColor = 'var(--border-hairline)';
-                      }}
-                      onMouseLeave={e => {
-                        if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: isActive ? 'var(--accent-gold)' : 'var(--text-faint)', fontWeight: 700 }}>
-                            #{String(idx + 1).padStart(2, '0')}
-                          </span>
+                      <X size={12} /> Quitter
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.25rem' }}>
+                    {activePlaybook.title_fr}
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                    {activePlaybook.description_fr}
+                  </div>
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0.55rem' }}>
+                  {activePlaybook.steps.map((step) => {
+                    const promptObj = allPrompts.find(p => p.id === step.promptId);
+                    const isCurrent = step.promptId === activePrompt?.id;
+                    const isDone = Boolean(playbookProgress[`${activePlaybook.id}:${step.stepNumber}`]);
+                    return (
+                      <div
+                        key={step.stepNumber}
+                        onClick={() => {
+                          setActivePromptId(step.promptId);
+                          setMobilePane('workbench');
+                        }}
+                        style={{
+                          padding: '0.8rem 0.85rem',
+                          borderRadius: '8px',
+                          marginBottom: '0.4rem',
+                          cursor: 'pointer',
+                          border: isCurrent ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
+                          backgroundColor: isCurrent ? 'var(--bg-card)' : 'transparent',
+                          transition: 'all 0.12s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                           <span style={{
-                            fontSize: '0.62rem',
-                            padding: '1px 5px',
-                            borderRadius: '3px',
-                            backgroundColor: 'var(--border-hairline)',
-                            color: 'var(--text-muted)',
-                            fontWeight: 600
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            fontFamily: 'var(--font-mono)',
+                            color: isCurrent ? 'var(--accent-gold)' : (isDone ? 'var(--accent-emerald)' : 'var(--text-faint)')
                           }}>
-                            {p.category}
+                            ÉTAPE {step.stepNumber} / {activePlaybook.steps.length}
                           </span>
-                          {p.isCustom && (
-                            <span style={{
-                              fontSize: '0.6rem',
-                              padding: '1px 5px',
-                              borderRadius: '3px',
-                              backgroundColor: 'var(--accent-gold-subtle)',
-                              color: 'var(--accent-gold)',
-                              fontWeight: 700
-                            }}>
-                              Sur-mesure
-                            </span>
-                          )}
+                          <button
+                            onClick={(e) => togglePlaybookStepDone(activePlaybook.id, step.stepNumber, e)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              border: '1px solid var(--border-hairline)',
+                              backgroundColor: isDone ? 'var(--accent-emerald-subtle)' : 'var(--bg-input)',
+                              color: isDone ? 'var(--accent-emerald)' : 'var(--text-faint)',
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <CheckCircle2 size={11} />
+                            <span>{isDone ? 'Terminé' : 'À faire'}</span>
+                          </button>
                         </div>
 
-                        <button
-                          onClick={(e) => toggleFavorite(p.id, e)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '2px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: isFav ? 'var(--accent-gold)' : 'var(--text-faint)'
-                          }}
-                          title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                        >
-                          <Star size={13} fill={isFav ? 'var(--accent-gold)' : 'none'} />
-                        </button>
-                      </div>
+                        <div style={{
+                          fontSize: '0.83rem',
+                          fontWeight: 700,
+                          color: isCurrent ? 'var(--text-bright)' : 'var(--text-normal)',
+                          marginBottom: '0.2rem'
+                        }}>
+                          {step.stepTitle}
+                        </div>
 
-                      <div style={{
-                        fontSize: '0.84rem',
-                        fontWeight: isActive ? 700 : 600,
-                        color: isActive ? 'var(--text-bright)' : 'var(--text-normal)',
-                        marginBottom: '0.25rem',
-                        lineHeight: 1.3
-                      }}>
-                        {p.title_fr}
+                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+                          {promptObj?.title_fr}
+                        </div>
                       </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              /* STANDARD CATALOG FEED */
+              <>
+                <div style={{
+                  padding: '0.75rem',
+                  borderBottom: '1px solid var(--border-hairline)'
+                }}>
+                  <div style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <Search size={14} color="var(--text-faint)" style={{ position: 'absolute', left: '10px', pointerEvents: 'none' }} />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Rechercher un prompt (⌘K)..."
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '6px 28px 6px 30px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border-hairline)',
+                        backgroundColor: 'var(--bg-input)',
+                        color: 'var(--text-bright)',
+                        fontSize: '0.8rem',
+                        outline: 'none'
+                      }}
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch('')}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-faint)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        title="Effacer la recherche"
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.7rem', color: 'var(--text-faint)', padding: '0 2px' }}>
+                    <span>{selectedCategory === 'Tous' ? 'Tous les modules' : selectedCategory}</span>
+                    <span>{filteredPrompts.length} module{filteredPrompts.length > 1 ? 's' : ''}</span>
+                  </div>
+                </div>
 
-                      <div style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-muted)',
-                        lineHeight: 1.4,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}>
-                        {p.description_fr}
-                      </div>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '0.4rem' }}>
+                  {filteredPrompts.length === 0 ? (
+                    <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-faint)', fontSize: '0.8rem' }}>
+                      Aucun prompt ne correspond à votre sélection.
                     </div>
-                  );
-                })
-              )}
-            </div>
+                  ) : (
+                    filteredPrompts.map((p, idx) => {
+                      const isActive = p.id === activePrompt?.id;
+                      const isFav = favorites.includes(p.id);
+                      return (
+                        <div
+                          key={p.id}
+                          ref={isActive ? activeCardRef : null}
+                          onClick={() => {
+                            setActivePromptId(p.id);
+                            setMobilePane('workbench');
+                          }}
+                          style={{
+                            padding: '0.75rem 0.85rem',
+                            borderRadius: '8px',
+                            marginBottom: '0.3rem',
+                            cursor: 'pointer',
+                            border: isActive ? '1px solid var(--border-focus)' : '1px solid transparent',
+                            backgroundColor: isActive ? 'var(--bg-card)' : 'transparent',
+                            boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
+                            transition: 'all 0.12s ease'
+                          }}
+                          onMouseEnter={e => {
+                            if (!isActive) e.currentTarget.style.backgroundColor = 'var(--border-hairline)';
+                          }}
+                          onMouseLeave={e => {
+                            if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: isActive ? 'var(--accent-gold)' : 'var(--text-faint)', fontWeight: 700 }}>
+                                #{String(idx + 1).padStart(2, '0')}
+                              </span>
+                              <span style={{
+                                fontSize: '0.62rem',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                backgroundColor: 'var(--border-hairline)',
+                                color: 'var(--text-muted)',
+                                fontWeight: 600
+                              }}>
+                                {p.category}
+                              </span>
+                              {p.isCustom && (
+                                <span style={{
+                                  fontSize: '0.6rem',
+                                  padding: '1px 5px',
+                                  borderRadius: '3px',
+                                  backgroundColor: 'var(--accent-gold-subtle)',
+                                  color: 'var(--accent-gold)',
+                                  fontWeight: 700
+                                }}>
+                                  Sur-mesure
+                                </span>
+                              )}
+                            </div>
+
+                            <button
+                              onClick={(e) => toggleFavorite(p.id, e)}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '2px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: isFav ? 'var(--accent-gold)' : 'var(--text-faint)'
+                              }}
+                              title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                            >
+                              <Star size={13} fill={isFav ? 'var(--accent-gold)' : 'none'} />
+                            </button>
+                          </div>
+
+                          <div style={{
+                            fontSize: '0.84rem',
+                            fontWeight: isActive ? 700 : 600,
+                            color: isActive ? 'var(--text-bright)' : 'var(--text-normal)',
+                            marginBottom: '0.25rem',
+                            lineHeight: 1.3
+                          }}>
+                            {p.title_fr}
+                          </div>
+
+                          <div style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--text-muted)',
+                            lineHeight: 1.4,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}>
+                            {p.description_fr}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
           </section>
         )}
 
@@ -1212,6 +1527,89 @@ export default function App() {
                 transition: 'max-width 0.2s ease'
               }}
             >
+              {/* PLAYBOOK STEP BANNER (when a Playbook is active) */}
+              {activePlaybook && activePlaybookStep && (
+                <div style={{
+                  marginBottom: '1.25rem',
+                  padding: '0.9rem 1.15rem',
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--bg-card)',
+                  border: '1px solid var(--border-focus)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.55rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Compass size={15} color="var(--accent-gold)" />
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>
+                        {activePlaybook.title_fr} — {activePlaybookStep.stepTitle}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <button
+                        disabled={activePlaybookStep.stepNumber <= 1}
+                        onClick={() => {
+                          const prevStep = activePlaybook.steps.find(s => s.stepNumber === activePlaybookStep.stepNumber - 1);
+                          if (prevStep) setActivePromptId(prevStep.promptId);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-hairline)',
+                          backgroundColor: 'var(--bg-input)',
+                          color: activePlaybookStep.stepNumber <= 1 ? 'var(--text-faint)' : 'var(--text-normal)',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          cursor: activePlaybookStep.stepNumber <= 1 ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        <ChevronLeft size={12} /> Précédent
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setPlaybookProgress(prev => ({
+                            ...prev,
+                            [`${activePlaybook.id}:${activePlaybookStep.stepNumber}`]: true
+                          }));
+                          const nextStep = activePlaybook.steps.find(s => s.stepNumber === activePlaybookStep.stepNumber + 1);
+                          if (nextStep) setActivePromptId(nextStep.promptId);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: 'var(--accent-gold)',
+                          color: '#000',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span>
+                          {activePlaybookStep.stepNumber < activePlaybook.steps.length
+                            ? 'Valider & Étape suivante'
+                            : 'Terminer le Playbook'}
+                        </span>
+                        <ChevronRight size={12} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-normal)', lineHeight: 1.45 }}>
+                    {activePlaybookStep.transitionNote}
+                  </div>
+                </div>
+              )}
+
               {/* Top utility bar: Focus mode, Favorite, Share Link, Export MD */}
               <div style={{
                 display: 'flex',
@@ -1429,7 +1827,10 @@ export default function App() {
                     <span>Prompt Optimisé & Personnalisé</span>
                   </button>
                   <button
-                    onClick={() => setActiveView('original')}
+                    onClick={() => {
+                      setIsLiveEditing(false);
+                      setActiveView('original');
+                    }}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -1531,7 +1932,10 @@ export default function App() {
                       <input
                         type="checkbox"
                         checked={injectProfileBlock}
-                        onChange={e => setInjectProfileBlock(e.target.checked)}
+                        onChange={e => {
+                          setManualPromptText(null);
+                          setInjectProfileBlock(e.target.checked);
+                        }}
                       />
                       <span>Injecter le bloc XML de profil</span>
                     </label>
@@ -1708,10 +2112,10 @@ export default function App() {
                 </div>
               )}
 
-              {/* CODE PREVIEW BOX */}
+              {/* CODE PREVIEW & LIVE EDITOR BOX */}
               <div style={{
                 borderRadius: '12px',
-                border: '1px solid var(--border-hairline)',
+                border: isLiveEditing ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
                 backgroundColor: 'var(--bg-input)',
                 overflow: 'hidden',
                 marginBottom: '1.35rem'
@@ -1724,37 +2128,123 @@ export default function App() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   fontSize: '0.72rem',
-                  color: 'var(--text-faint)'
+                  color: 'var(--text-faint)',
+                  flexWrap: 'wrap',
+                  gap: '0.4rem'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FileCode size={13} color="var(--accent-gold)" />
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-normal)' }}>
                       {activeView === 'customized' ? 'prompt_optimise.xml' : 'prompt_source_brut.md'}
                     </span>
+                    {manualPromptText !== null && activeView === 'customized' && (
+                      <span style={{
+                        fontSize: '0.64rem',
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        backgroundColor: 'var(--accent-gold-subtle)',
+                        color: 'var(--accent-gold)',
+                        fontWeight: 700
+                      }}>
+                        Modifié manuellement
+                      </span>
+                    )}
                   </div>
-                  <span style={{ fontFamily: 'var(--font-mono)' }}>
-                    {activeView === 'customized'
-                      ? `${computedPrompt.length} caractères`
-                      : 'Référence non modifiée'}
-                  </span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.69rem', color: 'var(--text-muted)' }}>
+                      ~{estimatedTokens} tokens • {displayedPromptText.length} car.
+                    </span>
+
+                    {activeView === 'customized' && (
+                      <>
+                        {manualPromptText !== null && (
+                          <button
+                            onClick={() => {
+                              setManualPromptText(null);
+                              setIsLiveEditing(false);
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              padding: '3px 7px',
+                              borderRadius: '5px',
+                              border: '1px solid var(--border-hairline)',
+                              backgroundColor: 'transparent',
+                              color: 'var(--text-muted)',
+                              fontSize: '0.68rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                            title="Revenir au prompt généré automatiquement"
+                          >
+                            <RotateCcw size={11} /> Réinitialiser
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (!isLiveEditing && manualPromptText === null) {
+                              setManualPromptText(computedPrompt);
+                            }
+                            setIsLiveEditing(prev => !prev);
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                            border: isLiveEditing ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
+                            backgroundColor: isLiveEditing ? 'var(--accent-gold-subtle)' : 'var(--bg-input)',
+                            color: isLiveEditing ? 'var(--accent-gold)' : 'var(--text-normal)',
+                            fontSize: '0.69rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {isLiveEditing ? <Eye size={11} /> : <Edit3 size={11} />}
+                          <span>{isLiveEditing ? 'Aperçu Colorisé' : 'Éditer le texte'}</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                <pre style={{
-                  padding: '1.25rem',
-                  fontSize: '0.82rem',
-                  lineHeight: 1.65,
-                  color: 'var(--text-normal)',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  maxHeight: focusMode ? '580px' : '440px',
-                  overflowY: 'auto'
-                }}>
-                  <code>
-                    {activeView === 'customized' 
-                      ? computedPrompt 
-                      : (activePrompt.original_prompt || 'Structure source non disponible pour ce module.')}
-                  </code>
-                </pre>
+                {isLiveEditing && activeView === 'customized' ? (
+                  <textarea
+                    value={effectiveCustomizedPrompt}
+                    onChange={e => setManualPromptText(e.target.value)}
+                    style={{
+                      width: '100%',
+                      minHeight: focusMode ? '520px' : '380px',
+                      padding: '1.25rem',
+                      fontSize: '0.82rem',
+                      lineHeight: 1.65,
+                      color: 'var(--text-bright)',
+                      backgroundColor: 'var(--bg-input)',
+                      border: 'none',
+                      fontFamily: 'var(--font-mono)',
+                      outline: 'none',
+                      resize: 'vertical'
+                    }}
+                  />
+                ) : (
+                  <pre style={{
+                    padding: '1.25rem',
+                    fontSize: '0.82rem',
+                    lineHeight: 1.65,
+                    color: 'var(--text-normal)',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    maxHeight: focusMode ? '580px' : '440px',
+                    overflowY: 'auto'
+                  }}>
+                    <code>
+                      <HighlightedPrompt text={displayedPromptText} />
+                    </code>
+                  </pre>
+                )}
               </div>
 
               {/* STRATEGIC NOTE (EXECUTIVE BRIEF) */}

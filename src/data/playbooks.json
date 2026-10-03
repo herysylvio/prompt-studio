@@ -1,0 +1,236 @@
+[
+  {
+    "id": "playbook-saas-launch",
+    "title_fr": "Lancement d'un Produit / SaaS de A à Z",
+    "subtitle_fr": "De la validation du modèle économique au déploiement technique et à l'activation client",
+    "description_fr": "Un parcours complet en 5 étapes pour cadrer votre modèle d'affaires, concevoir l'architecture technique et l'interface UI, rédiger la landing page de conversion et structurer l'onboarding des premiers utilisateurs.",
+    "badge": "Produit & Tech",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "ai-business-plan-architect",
+        "stepTitle": "1. Cadrage Stratégique & Business Plan",
+        "transitionNote": "Définissez d'abord votre proposition de valeur, votre ICP et votre modèle de revenus. Conservez les spécifications obtenues pour alimenter l'étape 2 (Architecture Technique)."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "full-stack-architecture",
+        "stepTitle": "2. Architecture Logicielle Full-Stack",
+        "transitionNote": "À partir des fonctionnalités clés validées à l'étape 1, générez la structure technique modulaire, le choix de la stack et les contrats de données."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "clean-saas-ui-concepts",
+        "stepTitle": "3. Conception UI/UX du Dashboard SaaS",
+        "transitionNote": "Traduisez vos modules techniques en une direction artistique d'interface épurée (grille 8pt, hiérarchie visuelle et composants clés)."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "prompt-10-structure-et-copywriting-",
+        "stepTitle": "4. Copywriting de la Landing Page",
+        "transitionNote": "Transformez votre proposition de valeur en une page de vente persuasive structurée (Hero, Preuve, Mécanisme Unique et CTA)."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "saas-onboarding-roadmap",
+        "stepTitle": "5. Feuille de Route d'Activation & Onboarding",
+        "transitionNote": "Finalisez le parcours en orchestrant les 7 premiers jours de vos nouveaux inscrits pour les amener vers leur première victoire rapide (Aha! Moment)."
+      }
+    ]
+  },
+  {
+    "id": "playbook-b2b-closing",
+    "title_fr": "Machine d'Acquisition & Closing B2B",
+    "subtitle_fr": "Du cadrage commercial à la prospection à froid, au traitement des objections et à la signature",
+    "description_fr": "Systématisez l'intégralité de votre cycle de vente B2B : création du manuel commercial, séquences de prospection directe, relances à valeur ajoutée, levée des blocages et proposition commerciale irrésistible.",
+    "badge": "Vente B2B",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "b2b-sales-playbook",
+        "stepTitle": "1. Standardisation du Sales Playbook",
+        "transitionNote": "Posez les fondations : critères de qualification (MEDDIC/BANT), questions de découverte et proposition de valeur commerciale."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "b2b-cold-outreach",
+        "stepTitle": "2. Séquences de Prospection B2B (Cold Outreach)",
+        "transitionNote": "Déclinez votre angle d'attaque en séquences d'emails courts (<100 mots) centrés sur le problème critique de votre décideur cible."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "multi-touch-followup-system",
+        "stepTitle": "3. Système de Relances Multi-Touches",
+        "transitionNote": "Préparez vos points de contact de suivi (études de cas, insights métiers) pour convertir les prospects silencieux sans jamais paraître insistant."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "sales-objection-crusher",
+        "stepTitle": "4. Traitement des Objections en Direct",
+        "transitionNote": "Armez-vous de réponses chirurgicales face aux freins budgétaires, temporels ou concurrentiels soulevés pendant l'appel de découverte."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "b2b-proposal-architect",
+        "stepTitle": "5. Proposition Commerciale & Ancrage Tarifaire",
+        "transitionNote": "Verrouillez la signature avec une proposition orientée ROI qui chiffre le coût de l'inaction et présente 3 options tarifaires claires."
+      }
+    ]
+  },
+  {
+    "id": "playbook-seo-domination",
+    "title_fr": "Domination SEO & Autorité Sémantique",
+    "subtitle_fr": "De la détection d'opportunités à la rétro-ingénierie Google, la rédaction E-E-A-T et le maillage",
+    "description_fr": "Une chaîne de production SEO industrielle pour identifier les requêtes rentables, surpasser le Top 3 actuel de Google, produire un contenu incarné indétectable et structurer votre cocon sémantique.",
+    "badge": "SEO & Trafic",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "high-volume-keyword-hunter",
+        "stepTitle": "1. Chasse aux Mots-Clés à Forte Intention",
+        "transitionNote": "Identifiez votre grappe de mots-clés prioritaires et sélectionnez la requête principale à fort potentiel commercial pour passer à l'étape 2."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "serp-reverse-engineering",
+        "stepTitle": "2. Rétro-Ingénierie du Top 3 de la SERP",
+        "transitionNote": "Analysez la structure des 3 premiers résultats Google sur ce mot-clé pour concevoir un plan d'article à fort gain d'information (Information Gain)."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "natural-seo-writer",
+        "stepTitle": "3. Rédaction de l'Article Sémantique",
+        "transitionNote": "Générez le contenu complet à partir du plan validé en intégrant les entités nommées et le vocabulaire technique du secteur."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "seo-content-humanizer",
+        "stepTitle": "4. Polissage Humain & Optimisation E-E-A-T",
+        "transitionNote": "Passez le brouillon dans ce module pour dynamiser le rythme syntaxique et injecter les marqueurs d'expérience terrain valorisés par Google."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "internal-linking-architect",
+        "stepTitle": "5. Architecture de Maillage Interne & Silos",
+        "transitionNote": "Intégrez votre nouvel article dans votre cocon sémantique avec des ancres de liens contextuelles vers vos pages piliers et commerciales."
+      }
+    ]
+  },
+  {
+    "id": "playbook-organic-authority",
+    "title_fr": "Système d'Autorité & Croissance Organique",
+    "subtitle_fr": "Positionnement de marque personnelle, piliers éditoriaux, clonage de voix et moteurs viraux",
+    "description_fr": "Bâtissez un écosystème de contenu magnétique qui attire des opportunités entrantes chaque semaine sans dénaturer votre style ni vous épuiser.",
+    "badge": "Personal Brand",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "prompt-12-plan-d-action-stratégique",
+        "stepTitle": "1. Positionnement & Plan de Marque sur 90 Jours",
+        "transitionNote": "Clarifiez votre singularité, votre audience cible et votre promesse centrale avant de produire la moindre ligne de contenu."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "prompt-3-piliers-de-contenu-et-aut",
+        "stepTitle": "2. Définition des Piliers Thématiques",
+        "transitionNote": "Décomposez votre positionnement en 3 à 5 piliers éditoriaux équilibrés entre éducation, preuves d'autorité et prise de position."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "clone-writing-dna",
+        "stepTitle": "3. Extraction de votre ADN Éditorial",
+        "transitionNote": "Analysez vos meilleurs textes passés pour modéliser votre profil stylistique exact (rythme, figures de style, niveau de langage)."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "prompt-11-machine-à-idées-et-hooks-",
+        "stepTitle": "4. Génération d'Accroches & Posts LinkedIn",
+        "transitionNote": "Transformez vos piliers en publications à fort impact dotées d'accroches (hooks) qui stoppent immédiatement le défilement."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "high-retention-newsletter",
+        "stepTitle": "5. Fidélisation par Newsletter Hebdomadaire",
+        "transitionNote": "Convertissez votre audience sociale volatile en actifs propriétaires durables grâce à une édition hebdomadaire à haute rétention."
+      }
+    ]
+  },
+  {
+    "id": "playbook-ai-automation-factory",
+    "title_fr": "Usine d'Automatisation & Agents IA",
+    "subtitle_fr": "De l'audit des tâches manuelles au déploiement de workflows n8n et d'agents autonomes sécurisés",
+    "description_fr": "Identifiez vos goulots d'étranglement opérationnels, concevez l'architecture d'automatisation, déployez vos workflows n8n et blindez vos agents IA pour une exécution sans supervision.",
+    "badge": "Agents & Ops",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "workflow-automation-auditor",
+        "stepTitle": "1. Audit des Opportunités & Matrice ROI",
+        "transitionNote": "Cartographiez vos processus répétitifs actuels et sélectionnez le flux offrant le meilleur ratio Heures Économisées / Complexité."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "business-automation-systems",
+        "stepTitle": "2. Blueprint du Système d'Automatisation",
+        "transitionNote": "Spécifiez les entrées, les transformations de données, les conditions logiques et les points de contrôle humains du processus retenu."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "n8n-production-workflows",
+        "stepTitle": "3. Implémentation Technique du Workflow n8n",
+        "transitionNote": "Traduisez le blueprint en une architecture concrète de nœuds n8n avec gestion des erreurs (Error Trigger) et logique de retry."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "system-prompt-guardrails",
+        "stepTitle": "4. Blindage & Garde-Fous du System Prompt",
+        "transitionNote": "Verrouillez le comportement du nœud IA de votre workflow contre les hallucinations et les sorties JSON malformées."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "unattended-agent-instructions",
+        "stepTitle": "5. Directives d'Exécution Autonome en Arrière-Plan",
+        "transitionNote": "Ajoutez les règles de sécurité permanentes (critères d'arrêt, logs d'audit et seuils d'alerte) pour laisser tourner l'agent en autonomie."
+      }
+    ]
+  },
+  {
+    "id": "playbook-cfo-fundraising",
+    "title_fr": "Pilotage Financier, Pricing & Levée de Fonds",
+    "subtitle_fr": "Optimisation des marges, modélisation P&L, sécurisation du Cash-Flow et Pitch Deck investisseurs",
+    "description_fr": "Structurez la direction financière de votre entreprise : maximisez votre pouvoir de tarification, bâtissez un prévisionnel solide sur 36 mois, auditez vos Unit Economics et préparez votre récit investisseurs.",
+    "badge": "Finance & CFO",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "pricing-strategy-optimizer",
+        "stepTitle": "1. Optimisation du Pricing Power & Offres",
+        "transitionNote": "Calibrez d'abord votre architecture tarifaire sur la valeur perçue pour maximiser votre marge brute unitaire avant toute projection."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "financial-projections-modeler",
+        "stepTitle": "2. Modélisation du Compte de Résultat (P&L 36 mois)",
+        "transitionNote": "Intégrez votre nouvelle grille tarifaire dans un modèle prévisionnel en 3 scénarios (prudent, réaliste, ambitieux)."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "cash-flow-forecaster",
+        "stepTitle": "3. Prévisionnel de Trésorerie & Pilotage du BFR",
+        "transitionNote": "Traduisez le P&L en flux de trésorerie réels mois par mois pour sécuriser votre piste financière (Runway) et anticiper les décalages."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "financial-performance-auditor",
+        "stepTitle": "4. Audit des Unit Economics (LTV / CAC / Payback)",
+        "transitionNote": "Validez la solidité de vos ratios d'efficacité du capital (LTV/CAC > 3, Payback court) exigés par les partenaires financiers."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "investor-pitch-narrative",
+        "stepTitle": "5. Storytelling & Architecture du Pitch Deck",
+        "transitionNote": "Synthétisez votre vision, votre traction et vos métriques financières vérifiées dans une trame narrative irrésistible slide par slide."
+      }
+    ]
+  }
+]
