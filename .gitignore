@@ -25,3 +25,6 @@ dist-ssr
 
 # Antigravity local config
 .agy/
+
+__pycache__/
+*.pyc
