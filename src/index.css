@@ -125,7 +125,8 @@ input:focus, textarea:focus, select:focus {
   .ps-workbench-container {
     padding: 1.25rem 1.1rem !important;
   }
-  .ps-vars-grid {
+  .ps-vars-grid,
+  .ps-split-grid {
     grid-template-columns: 1fr !important;
   }
   .ps-toolbar-bar {
@@ -137,3 +138,4 @@ input:focus, textarea:focus, select:focus {
     flex-wrap: wrap;
   }
 }
+

@@ -232,5 +232,123 @@
         "transitionNote": "Synthétisez votre vision, votre traction et vos métriques financières vérifiées dans une trame narrative irrésistible slide par slide."
       }
     ]
+  },
+  {
+    "id": "playbook-ecommerce-scaling",
+    "title_fr": "Lancement & Scaling Boutique E-Commerce D2C",
+    "subtitle_fr": "De l'analyse des avis clients aux fiches produits CRO, bundles AOV, récupération de paniers et LTV",
+    "description_fr": "Transformez votre boutique en ligne en machine de conversion : exploitez la voix du client, optimisez vos fiches produits, augmentez le panier moyen par des bundles, récupérez les paniers abandonnés et fidélisez en post-achat.",
+    "badge": "E-Commerce",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "customer-reviews-mining-matrix",
+        "stepTitle": "1. Extraction de la Voix du Client (VoC & Avis)",
+        "transitionNote": "Analysez d'abord les avis de votre marché pour extraire les arguments émotionnels exacts et les freins d'achat à lever dans votre fiche produit."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "shopify-high-converting-product-page",
+        "stepTitle": "2. Architecture de la Fiche Produit Haute Conversion",
+        "transitionNote": "Injectez les bénéfices et verbatims identifiés à l'étape 1 pour rédiger une fiche produit mobile-first orientée conversion."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "ecommerce-aov-bundle-architect",
+        "stepTitle": "3. Ingénierie des Bundles & Hausse du Panier Moyen (AOV)",
+        "transitionNote": "Structurez vos offres groupées et paliers de panier autour de votre produit phare pour augmenter immédiatement la marge par commande."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "abandoned-cart-recovery-sequence",
+        "stepTitle": "4. Séquence Multi-Canal Paniers Abandonnés",
+        "transitionNote": "Déployez votre filet de sécurité Email/SMS en 4 temps pour convertir les visiteurs ayant initié un paiement sans finaliser."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "post-purchase-retention-loyalty",
+        "stepTitle": "5. Système Post-Achat, Réassort & Fidélisation LTV",
+        "transitionNote": "Bouclez le parcours en orchestrant l'expérience de livraison et la séquence de réachat prédictif pour doubler la valeur vie client."
+      }
+    ]
+  },
+  {
+    "id": "playbook-hr-ops-excellence",
+    "title_fr": "Structuration RH, Recrutement A-Players & SOP",
+    "subtitle_fr": "De la Scorecard de recrutement à l'entretien anti-biais, l'onboarding 30-60-90j et la standardisation SOP",
+    "description_fr": "Systématisez l'excellence opérationnelle de votre équipe : recrutez sans erreur grâce aux Scorecards et grilles structurées, accélérez la montée en puissance sur 90 jours et documentez vos processus clés.",
+    "badge": "RH & Ops",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "a-player-job-scorecard-builder",
+        "stepTitle": "1. Scorecard de Poste & Résultats Attendus à 90 Jours",
+        "transitionNote": "Définissez avec précision les missions et les indicateurs de succès mesurables du rôle avant d'ouvrir le recrutement."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "structured-interview-anti-bias",
+        "stepTitle": "2. Grille d'Entretien Structuré & Cas Pratique",
+        "transitionNote": "Traduisez les compétences de la Scorecard en questions comportementales notées de 1 à 5 et en test pratique réaliste."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "employee-onboarding-30-60-90",
+        "stepTitle": "3. Plan d'Onboarding Haute Vélocité 30-60-90 Jours",
+        "transitionNote": "Une fois le candidat recruté, orchestrez ses 90 premiers jours et sa première victoire rapide dès la deuxième semaine."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "sop-standard-operating-procedure",
+        "stepTitle": "4. Documentation des Procédures Standardisées (SOP)",
+        "transitionNote": "Documentez les processus récurrents du poste sous forme de SOP claires et vérifiables pour garantir une exécution sans friction."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "remote-async-culture-handbook",
+        "stepTitle": "5. Charte de Communication Asynchrone & Rituels",
+        "transitionNote": "Ancrez la performance dans la durée avec des règles claires de communication écrite, de SLA interne et de protection du Deep Work."
+      }
+    ]
+  },
+  {
+    "id": "playbook-creator-video-engine",
+    "title_fr": "Machine de Contenu Vidéo YouTube, Shorts & Podcast",
+    "subtitle_fr": "Du positionnement de chaîne au packaging CTR > 10 %, script haute rétention, repurposing et sponsoring",
+    "description_fr": "Le système complet des créateurs et médias B2B/B2C : validez le duo Titre/Miniature avant de tourner, écrivez des scripts à haute rétention, déclinez chaque vidéo en 12 actifs omnicanaux et monétisez auprès de sponsors.",
+    "badge": "Vidéo & Média",
+    "steps": [
+      {
+        "stepNumber": 1,
+        "promptId": "youtube-channel-positioning-bible",
+        "stepTitle": "1. Bible de Positionnement & Formats Récurrents",
+        "transitionNote": "Clarifiez l'avatar spectateur, vos 3 piliers éditoriaux et le modèle de monétisation de votre chaîne avant de produire."
+      },
+      {
+        "stepNumber": 2,
+        "promptId": "youtube-thumbnail-title-ctr-lab",
+        "stepTitle": "2. Packaging Avant Tournage : Titres & Miniatures (CTR)",
+        "transitionNote": "Validez d'abord l'angle de clic avec 10 duos Titre + Concept de Miniature exploitant un écart de curiosité irrésistible."
+      },
+      {
+        "stepNumber": 3,
+        "promptId": "youtube-high-retention-scriptwriter",
+        "stepTitle": "3. Écriture du Script Long Format Haute Rétention",
+        "transitionNote": "Rédigez le script complet qui valide le titre dès les 15 premières secondes et maintient l'attention grâce aux boucles ouvertes."
+      },
+      {
+        "stepNumber": 4,
+        "promptId": "omnipresence-video-repurposing-engine",
+        "stepTitle": "4. Cascade Omnicanale : 1 Vidéo vers 12 Contenus",
+        "transitionNote": "Déclinez le script ou la transcription de votre vidéo principale en Shorts/Reels, posts LinkedIn, threads X et édition de newsletter."
+      },
+      {
+        "stepNumber": 5,
+        "promptId": "creator-sponsorship-pitch-deck",
+        "stepTitle": "5. Pitch Sponsors & Script d'Intégration Native (Ad-Read)",
+        "transitionNote": "Monétisez votre audience en proposant des partenariats multi-épisodes et des intégrations publicitaires natives de 60 secondes."
+      }
+    ]
   }
 ]
+

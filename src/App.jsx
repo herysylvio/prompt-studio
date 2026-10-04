@@ -6,7 +6,8 @@ import {
   RotateCcw, PanelLeftClose, PanelLeftOpen, Command, FileText,
   Trash2, Edit3, X, FolderHeart, CheckCircle2, Keyboard, ListFilter,
   Bot, Briefcase, LineChart, UserCheck, Wand2, Upload, Save,
-  Compass, ChevronRight, ChevronLeft, Eye
+  Compass, ChevronRight, ChevronLeft, Eye,
+  ShoppingCart, Scale, Video, History, Columns2, Gauge, CornerDownLeft
 } from 'lucide-react';
 import promptsData from './data/prompts.json';
 import playbooksData from './data/playbooks.json';
@@ -19,6 +20,7 @@ const STORAGE_KEYS = {
   CONTEXT_PROFILES: 'ps_context_profiles_v1',
   ACTIVE_PROFILE_ID: 'ps_active_profile_id_v1',
   PLAYBOOK_PROGRESS: 'ps_playbook_progress_v1',
+  RECENT_HISTORY: 'ps_recent_history_v1',
 };
 
 function safeLoadJSON(key, fallback) {
@@ -106,6 +108,7 @@ export default function App() {
   const [contextProfiles, setContextProfiles] = useState(() => safeLoadJSON(STORAGE_KEYS.CONTEXT_PROFILES, []));
   const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(STORAGE_KEYS.ACTIVE_PROFILE_ID) || '');
   const [playbookProgress, setPlaybookProgress] = useState(() => safeLoadJSON(STORAGE_KEYS.PLAYBOOK_PROGRESS, {}));
+  const [recentHistory, setRecentHistory] = useState(() => safeLoadJSON(STORAGE_KEYS.RECENT_HISTORY, []));
 
   // Navigation & filter states
   const [search, setSearch] = useState('');
@@ -114,6 +117,11 @@ export default function App() {
   const [activePlaybookId, setActivePlaybookId] = useState(null);
   const [focusMode, setFocusMode] = useState(false);
   const [mobilePane, setMobilePane] = useState('workbench'); // 'sidebar' | 'feed' | 'workbench'
+
+  // Command Palette Cmd+K modal states
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [commandSelectedIndex, setCommandSelectedIndex] = useState(0);
 
   // Combined prompt catalog (custom prompts first, then built-in prompts)
   const allPrompts = useMemo(() => {
@@ -131,7 +139,7 @@ export default function App() {
   // Workbench UI states
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [activeView, setActiveView] = useState('customized'); // 'customized' | 'original'
+  const [activeView, setActiveView] = useState('customized'); // 'customized' | 'original' | 'split'
   const [injectProfileBlock, setInjectProfileBlock] = useState(true);
   const [isLiveEditing, setIsLiveEditing] = useState(false);
   const [manualPromptText, setManualPromptText] = useState(null);
@@ -162,6 +170,7 @@ export default function App() {
   const searchInputRef = useRef(null);
   const activeCardRef = useRef(null);
   const fileImportRef = useRef(null);
+  const commandInputRef = useRef(null);
 
   // Sync theme
   useEffect(() => {
@@ -198,6 +207,11 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.PLAYBOOK_PROGRESS, JSON.stringify(playbookProgress));
   }, [playbookProgress]);
+
+  // Sync recent copy history
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.RECENT_HISTORY, JSON.stringify(recentHistory));
+  }, [recentHistory]);
 
   // Reset live manual edit override when switching prompt
   useEffect(() => {
@@ -254,10 +268,11 @@ export default function App() {
     setMobilePane('feed');
   };
 
-  // Categories list with SVG icons and dynamic counts (9 categories + Favorites + Custom)
+  // Categories list with SVG icons and dynamic counts (12 categories + Favorites + Recents + Custom)
   const categories = useMemo(() => [
     { id: 'Tous', label: 'Toutes les catégories', icon: Layers, count: allPrompts.length },
     { id: 'Favoris', label: 'Prompts Favoris', icon: Star, count: allPrompts.filter(p => favorites.includes(p.id)).length },
+    { id: 'Recents', label: 'Récemment Copiés', icon: History, count: recentHistory.filter(h => allPrompts.some(p => p.id === h.id)).length },
     ...(customPrompts.length > 0 ? [
       { id: 'Personnalisés', label: 'Mes Prompts Sur-Mesure', icon: FolderHeart, count: customPrompts.length }
     ] : []),
@@ -270,7 +285,10 @@ export default function App() {
     { id: 'Automation', label: 'Agents IA & Automatisation', icon: Bot, count: allPrompts.filter(p => p.category?.toLowerCase() === 'automation').length },
     { id: 'Business', label: 'Productivité & Stratégie', icon: Briefcase, count: allPrompts.filter(p => p.category?.toLowerCase() === 'business').length },
     { id: 'Finance', label: 'Data, Finance & Analyse', icon: LineChart, count: allPrompts.filter(p => p.category?.toLowerCase() === 'finance').length },
-  ], [allPrompts, favorites, customPrompts]);
+    { id: 'Ecommerce', label: 'E-Commerce & Retail', icon: ShoppingCart, count: allPrompts.filter(p => p.category?.toLowerCase() === 'ecommerce').length },
+    { id: 'Operations', label: 'Juridique, RH & Opérations', icon: Scale, count: allPrompts.filter(p => p.category?.toLowerCase() === 'operations').length },
+    { id: 'Media', label: 'Vidéo, YouTube & Créateurs', icon: Video, count: allPrompts.filter(p => p.category?.toLowerCase() === 'media').length },
+  ], [allPrompts, favorites, recentHistory, customPrompts]);
 
   const modelsList = ['Tous', 'ChatGPT', 'Claude', 'Gemini', 'DeepSeek'];
 
@@ -334,10 +352,13 @@ export default function App() {
 
   // Filtered prompt list
   const filteredPrompts = useMemo(() => {
-    return allPrompts.filter(p => {
+    const recentOrderMap = new Map(recentHistory.map((h, i) => [h.id, i]));
+    const matching = allPrompts.filter(p => {
       let matchCat = true;
       if (selectedCategory === 'Favoris') {
         matchCat = favorites.includes(p.id);
+      } else if (selectedCategory === 'Recents') {
+        matchCat = recentOrderMap.has(p.id);
       } else if (selectedCategory === 'Personnalisés') {
         matchCat = Boolean(p.isCustom);
       } else if (selectedCategory !== 'Tous') {
@@ -354,7 +375,12 @@ export default function App() {
 
       return matchCat && matchModel && matchSearch;
     });
-  }, [allPrompts, selectedCategory, selectedModel, search, favorites]);
+
+    if (selectedCategory === 'Recents') {
+      return [...matching].sort((a, b) => (recentOrderMap.get(a.id) ?? 999) - (recentOrderMap.get(b.id) ?? 999));
+    }
+    return matching;
+  }, [allPrompts, selectedCategory, selectedModel, search, favorites, recentHistory]);
 
   // Dynamic live prompt calculation (with optional active profile context block)
   const computedPrompt = useMemo(() => {
@@ -390,13 +416,18 @@ export default function App() {
   const effectiveCustomizedPrompt = manualPromptText !== null ? manualPromptText : computedPrompt;
 
   // Displayed code text & estimated tokens
-  const displayedPromptText = activeView === 'customized'
-    ? effectiveCustomizedPrompt
-    : (activePrompt?.original_prompt || 'Structure source non disponible pour ce module.');
+  const rawReferencePromptText = activePrompt?.original_prompt || 'Structure source non disponible pour ce module.';
+  const displayedPromptText = activeView === 'original'
+    ? rawReferencePromptText
+    : effectiveCustomizedPrompt;
 
   const estimatedTokens = useMemo(() => {
     return Math.max(1, Math.ceil((displayedPromptText || '').length / 3.8));
   }, [displayedPromptText]);
+
+  const rawEstimatedTokens = useMemo(() => {
+    return Math.max(1, Math.ceil((rawReferencePromptText || '').length / 3.8));
+  }, [rawReferencePromptText]);
 
   // Count filled variables
   const filledVariablesCount = useMemo(() => {
@@ -404,12 +435,58 @@ export default function App() {
     return activePrompt.variables_list.filter(v => (variableInputs[v.name] || '').trim() !== '').length;
   }, [activePrompt, variableInputs]);
 
-  // Copy handler
+  // Real-time Prompt Engineering Quality Score (/100) & Checklist
+  const promptQualityReport = useMemo(() => {
+    const text = effectiveCustomizedPrompt || '';
+    const totalVars = activePrompt?.variables_list?.length || 0;
+    const unreplacedMatches = text.match(/\{\{[^}]+\}\}/g) || [];
+
+    const hasRole = /<system_role>|<role>|you are a/i.test(text);
+    const hasGuidelines = /<execution_guidelines>|<instructions>|<methodology>|<constraints>/i.test(text);
+    const hasSchema = /<structured_output_schema>|<output_format>|### 1\./i.test(text);
+    const varsRatio = totalVars === 0
+      ? 1
+      : Math.max(filledVariablesCount / totalVars, unreplacedMatches.length === 0 ? 1 : 0);
+    const varsPoints = Math.round(varsRatio * 25);
+    const hasContextBoost = Boolean((activeProfile && injectProfileBlock) || manualPromptText !== null || filledVariablesCount > 0);
+    const contextPoints = hasContextBoost ? 15 : 5;
+
+    const score = Math.min(
+      100,
+      (hasRole ? 20 : 5) +
+      (hasGuidelines ? 20 : 5) +
+      (hasSchema ? 20 : 5) +
+      varsPoints +
+      contextPoints
+    );
+
+    const checks = [
+      { id: 'role', label: 'Persona & Rôle Système', ok: hasRole },
+      { id: 'guidelines', label: 'Directives & Contraintes', ok: hasGuidelines },
+      { id: 'schema', label: 'Schéma de Sortie Structuré', ok: hasSchema },
+      {
+        id: 'vars',
+        label: totalVars > 0 ? `Variables (${filledVariablesCount}/${totalVars})` : 'Variables Prêtes',
+        ok: totalVars === 0 || filledVariablesCount === totalVars || unreplacedMatches.length === 0
+      },
+      { id: 'context', label: 'Contexte Métier Injecté', ok: hasContextBoost }
+    ];
+
+    return { score, checks };
+  }, [effectiveCustomizedPrompt, activePrompt, filledVariablesCount, activeProfile, injectProfileBlock, manualPromptText]);
+
+  // Copy handler (also records into recentHistory)
   const handleCopy = useCallback(() => {
     if (!activePrompt) return;
-    const text = activeView === 'customized' ? effectiveCustomizedPrompt : (activePrompt.original_prompt || effectiveCustomizedPrompt);
+    const text = activeView === 'original'
+      ? (activePrompt.original_prompt || effectiveCustomizedPrompt)
+      : effectiveCustomizedPrompt;
     navigator.clipboard.writeText(text);
     setCopied(true);
+    setRecentHistory(prev => {
+      const filtered = prev.filter(item => item.id !== activePrompt.id);
+      return [{ id: activePrompt.id, copiedAt: new Date().toISOString() }, ...filtered].slice(0, 15);
+    });
     setTimeout(() => setCopied(false), 2000);
   }, [activePrompt, activeView, effectiveCustomizedPrompt]);
 
@@ -455,14 +532,15 @@ export default function App() {
   // Export Workspace Backup (.json)
   const handleExportWorkspaceJSON = () => {
     const payload = {
-      version: '1.1',
+      version: '1.2',
       exportedAt: new Date().toISOString(),
       favorites,
       customPrompts,
       allSavedVars,
       contextProfiles,
       activeProfileId,
-      playbookProgress
+      playbookProgress,
+      recentHistory
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -489,6 +567,7 @@ export default function App() {
         if (Array.isArray(data.contextProfiles)) setContextProfiles(data.contextProfiles);
         if (typeof data.activeProfileId === 'string') setActiveProfileId(data.activeProfileId);
         if (data.playbookProgress && typeof data.playbookProgress === 'object') setPlaybookProgress(data.playbookProgress);
+        if (Array.isArray(data.recentHistory)) setRecentHistory(data.recentHistory);
       } catch {
         alert('Fichier de sauvegarde JSON invalide.');
       }
@@ -497,15 +576,167 @@ export default function App() {
     e.target.value = '';
   };
 
-  // Keyboard shortcuts: Cmd/Ctrl+K (search), Up/Down (navigate), Cmd/Ctrl+Enter (copy), Esc
+  // Open Command Palette Modal (Cmd+K)
+  const openCommandPalette = useCallback(() => {
+    setCommandQuery('');
+    setCommandSelectedIndex(0);
+    setIsCommandPaletteOpen(true);
+    setTimeout(() => commandInputRef.current?.focus(), 20);
+  }, []);
+
+  // Build filtered items for Command Palette (Quick Actions + Playbooks + Prompts)
+  const commandItems = useMemo(() => {
+    const q = commandQuery.trim().toLowerCase();
+    const quickActions = [
+      {
+        id: 'act-new-prompt',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: 'Créer un Nouveau Prompt Sur-Mesure',
+        subtitle: 'Ouvrir l’éditeur de prompt personnalisé avec détection {{variable}}',
+        badge: 'Action'
+      },
+      {
+        id: 'act-new-profile',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: 'Créer un Profil de Contexte Global',
+        subtitle: 'Pré-remplir vos variables métiers et injecter votre contexte en 1 clic',
+        badge: 'Profil'
+      },
+      {
+        id: 'act-split-view',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: activeView === 'split' ? 'Revenir à la Vue Prompt Optimisé' : 'Activer la Comparaison Côte-à-Côte (Split-View)',
+        subtitle: 'Comparer en direct le Prompt Optimisé XML et le Prompt Source Brut',
+        badge: 'Atelier'
+      },
+      {
+        id: 'act-focus-mode',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: focusMode ? 'Quitter le Mode Focus' : 'Activer le Mode Focus Plein Écran',
+        subtitle: 'Masquer les panneaux latéraux pour travailler sans distraction',
+        badge: 'Affichage'
+      },
+      {
+        id: 'act-toggle-theme',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: `Basculer en Thème ${theme === 'dark' ? 'Clair' : 'Sombre'}`,
+        subtitle: 'Changer immédiatement l’apparence de Prompt Studio',
+        badge: 'Thème'
+      },
+      {
+        id: 'act-export-json',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: 'Exporter une Sauvegarde de l’Espace (.json)',
+        subtitle: 'Télécharger vos favoris, profils, progressions et prompts sur-mesure',
+        badge: 'Backup'
+      }
+    ].filter(a => !q || a.title.toLowerCase().includes(q) || a.subtitle.toLowerCase().includes(q));
+
+    const matchingPlaybooks = playbooksData
+      .filter(pb => !q || pb.title_fr.toLowerCase().includes(q) || pb.subtitle_fr?.toLowerCase().includes(q) || pb.badge?.toLowerCase().includes(q))
+      .map(pb => ({
+        id: `pb-${pb.id}`,
+        type: 'playbook',
+        groupLabel: 'Playbooks Multi-Étapes (9)',
+        title: pb.title_fr,
+        subtitle: pb.subtitle_fr,
+        badge: `Playbook • ${pb.badge}`,
+        payload: pb
+      }));
+
+    const matchingPrompts = allPrompts
+      .filter(p => !q ||
+        p.title_fr?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
+        p.description_fr?.toLowerCase().includes(q) ||
+        p.variables_fr?.toLowerCase().includes(q)
+      )
+      .slice(0, q ? 30 : 14)
+      .map(p => ({
+        id: `pr-${p.id}`,
+        type: 'prompt',
+        groupLabel: `Prompts d'Ingénierie (${allPrompts.length})`,
+        title: p.title_fr,
+        subtitle: p.description_fr,
+        badge: p.category,
+        payload: p
+      }));
+
+    return [...quickActions, ...matchingPlaybooks, ...matchingPrompts];
+  }, [commandQuery, allPrompts, activeView, focusMode, theme]);
+
+  const executeCommandItem = useCallback((item) => {
+    if (!item) return;
+    setIsCommandPaletteOpen(false);
+    if (item.type === 'action') {
+      if (item.id === 'act-new-prompt') {
+        openNewPromptModal();
+      } else if (item.id === 'act-new-profile') {
+        openNewProfileModal();
+      } else if (item.id === 'act-split-view') {
+        setIsLiveEditing(false);
+        setActiveView(prev => prev === 'split' ? 'customized' : 'split');
+      } else if (item.id === 'act-focus-mode') {
+        setFocusMode(prev => !prev);
+      } else if (item.id === 'act-toggle-theme') {
+        toggleTheme();
+      } else if (item.id === 'act-export-json') {
+        handleExportWorkspaceJSON();
+      }
+      return;
+    }
+    if (item.type === 'playbook' && item.payload) {
+      handleSelectPlaybook(item.payload);
+      return;
+    }
+    if (item.type === 'prompt' && item.payload) {
+      setActivePlaybookId(null);
+      setActivePromptId(item.payload.id);
+      setMobilePane('workbench');
+    }
+  }, []);
+
+  // Keyboard shortcuts: Cmd/Ctrl+K (Command Palette), Up/Down (navigate), Cmd/Ctrl+Enter (copy), Esc
   useEffect(() => {
     const onKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        if (focusMode) setFocusMode(false);
-        setActivePlaybookId(null);
-        setMobilePane('feed');
-        setTimeout(() => searchInputRef.current?.focus(), 20);
+        if (isCommandPaletteOpen) {
+          setIsCommandPaletteOpen(false);
+        } else {
+          openCommandPalette();
+        }
+        return;
+      }
+
+      if (isCommandPaletteOpen) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setIsCommandPaletteOpen(false);
+          return;
+        }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setCommandSelectedIndex(prev => (commandItems.length > 0 ? (prev + 1) % commandItems.length : 0));
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setCommandSelectedIndex(prev => (commandItems.length > 0 ? (prev - 1 + commandItems.length) % commandItems.length : 0));
+          return;
+        }
+        if (e.key === 'Enter' && commandItems.length > 0) {
+          e.preventDefault();
+          const chosen = commandItems[Math.min(commandSelectedIndex, commandItems.length - 1)];
+          executeCommandItem(chosen);
+          return;
+        }
         return;
       }
 
@@ -565,7 +796,11 @@ export default function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [filteredPrompts, activePrompt, activePlaybook, focusMode, isModalOpen, isProfileModalOpen, isLiveEditing, search, handleCopy]);
+  }, [
+    filteredPrompts, activePrompt, activePlaybook, focusMode,
+    isModalOpen, isProfileModalOpen, isLiveEditing, search, handleCopy,
+    isCommandPaletteOpen, openCommandPalette, commandItems, commandSelectedIndex, executeCommandItem
+  ]);
 
   // Scroll active card into view on keyboard nav
   useEffect(() => {
@@ -870,29 +1105,67 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Action CTAs: New Custom Prompt & Context Profile */}
+              {/* Action CTAs: Command Palette Cmd+K, New Custom Prompt & Context Profile */}
               <div style={{ padding: '0.6rem 0.65rem 0.2rem', display: 'flex', flexDirection: 'column', gap: '0.38rem' }}>
-                <button
-                  onClick={openNewPromptModal}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.45rem',
-                    padding: '6px 10px',
-                    borderRadius: '7px',
-                    border: '1px solid var(--border-focus)',
-                    backgroundColor: 'var(--accent-gold-subtle)',
-                    color: 'var(--accent-gold)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Plus size={14} />
-                  <span>Nouveau Prompt</span>
-                </button>
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                  <button
+                    onClick={openCommandPalette}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '0.35rem',
+                      padding: '6px 8px',
+                      borderRadius: '7px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-input)',
+                      color: 'var(--text-normal)',
+                      fontSize: '0.73rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                    title="Ouvrir la Palette de Commande Rapide (⌘K)"
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Search size={12} color="var(--accent-gold)" />
+                      <span>Palette</span>
+                    </span>
+                    <kbd style={{
+                      fontSize: '0.63rem',
+                      fontFamily: 'var(--font-mono)',
+                      padding: '1px 4px',
+                      borderRadius: '4px',
+                      backgroundColor: 'var(--bg-card)',
+                      border: '1px solid var(--border-hairline)',
+                      color: 'var(--text-muted)'
+                    }}>
+                      ⌘K
+                    </kbd>
+                  </button>
+
+                  <button
+                    onClick={openNewPromptModal}
+                    style={{
+                      flex: 1.15,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      padding: '6px 8px',
+                      borderRadius: '7px',
+                      border: '1px solid var(--border-focus)',
+                      backgroundColor: 'var(--accent-gold-subtle)',
+                      color: 'var(--accent-gold)',
+                      fontSize: '0.73rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Plus size={13} />
+                    <span>Nouveau</span>
+                  </button>
+                </div>
 
                 {/* Context Profile Quick Selector */}
                 <div style={{
@@ -1806,16 +2079,16 @@ export default function App() {
                 }}
               >
                 {/* Tab Switcher (100% SVG icons, zero decorative emoji) */}
-                <div style={{ display: 'flex', gap: '4px' }}>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => setActiveView('customized')}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.4rem',
-                      padding: '6px 12px',
+                      padding: '6px 11px',
                       borderRadius: '6px',
-                      fontSize: '0.78rem',
+                      fontSize: '0.76rem',
                       fontWeight: 600,
                       border: 'none',
                       backgroundColor: activeView === 'customized' ? 'var(--border-card)' : 'transparent',
@@ -1824,7 +2097,7 @@ export default function App() {
                     }}
                   >
                     <Sparkles size={13} color={activeView === 'customized' ? 'var(--accent-gold)' : 'currentColor'} />
-                    <span>Prompt Optimisé & Personnalisé</span>
+                    <span>Prompt Optimisé</span>
                   </button>
                   <button
                     onClick={() => {
@@ -1835,9 +2108,9 @@ export default function App() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.4rem',
-                      padding: '6px 12px',
+                      padding: '6px 11px',
                       borderRadius: '6px',
-                      fontSize: '0.78rem',
+                      fontSize: '0.76rem',
                       fontWeight: 600,
                       border: 'none',
                       backgroundColor: activeView === 'original' ? 'var(--border-card)' : 'transparent',
@@ -1846,7 +2119,30 @@ export default function App() {
                     }}
                   >
                     <FileText size={13} />
-                    <span>Prompt Source Brut (Référence)</span>
+                    <span>Source Brut</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsLiveEditing(false);
+                      setActiveView('split');
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '6px 11px',
+                      borderRadius: '6px',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      border: 'none',
+                      backgroundColor: activeView === 'split' ? 'var(--border-card)' : 'transparent',
+                      color: activeView === 'split' ? 'var(--text-bright)' : 'var(--text-muted)',
+                      cursor: 'pointer'
+                    }}
+                    title="Comparer côte à côte le Prompt Optimisé XML et le Prompt Source Brut"
+                  >
+                    <Columns2 size={13} color={activeView === 'split' ? 'var(--accent-gold)' : 'currentColor'} />
+                    <span>Comparaison Split</span>
                   </button>
                 </div>
 
@@ -1909,7 +2205,7 @@ export default function App() {
               </div>
 
               {/* ACTIVE CONTEXT PROFILE BAR (When a profile is selected) */}
-              {activeView === 'customized' && activeProfile && (
+              {activeView !== 'original' && activeProfile && (
                 <div style={{
                   marginBottom: '1rem',
                   padding: '0.7rem 1rem',
@@ -1965,10 +2261,10 @@ export default function App() {
                 </div>
               )}
 
-              {/* DYNAMIC VARIABLES INPUTS (Only in customized view) */}
-              {activeView === 'customized' && activePrompt.variables_list && activePrompt.variables_list.length > 0 && (
+              {/* DYNAMIC VARIABLES INPUTS (In customized or split view) */}
+              {activeView !== 'original' && activePrompt.variables_list && activePrompt.variables_list.length > 0 && (
                 <div style={{
-                  marginBottom: '1.35rem',
+                  marginBottom: '1.15rem',
                   padding: '1.15rem 1.25rem',
                   backgroundColor: 'var(--bg-card)',
                   borderRadius: '12px',
@@ -2112,140 +2408,301 @@ export default function App() {
                 </div>
               )}
 
-              {/* CODE PREVIEW & LIVE EDITOR BOX */}
+              {/* PROMPT ENGINEERING QUALITY SCORE & CHECKLIST BAR */}
               <div style={{
-                borderRadius: '12px',
-                border: isLiveEditing ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
-                backgroundColor: 'var(--bg-input)',
-                overflow: 'hidden',
-                marginBottom: '1.35rem'
+                marginBottom: '1rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '10px',
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-hairline)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.65rem'
               }}>
-                <div style={{
-                  padding: '7px 12px',
-                  borderBottom: '1px solid var(--border-hairline)',
-                  backgroundColor: 'var(--bg-card)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.72rem',
-                  color: 'var(--text-faint)',
-                  flexWrap: 'wrap',
-                  gap: '0.4rem'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <FileCode size={13} color="var(--accent-gold)" />
-                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-normal)' }}>
-                      {activeView === 'customized' ? 'prompt_optimise.xml' : 'prompt_source_brut.md'}
-                    </span>
-                    {manualPromptText !== null && activeView === 'customized' && (
-                      <span style={{
-                        fontSize: '0.64rem',
-                        padding: '1px 6px',
-                        borderRadius: '4px',
-                        backgroundColor: 'var(--accent-gold-subtle)',
-                        color: 'var(--accent-gold)',
-                        fontWeight: 700
-                      }}>
-                        Modifié manuellement
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <Gauge size={15} color={promptQualityReport.score >= 85 ? 'var(--accent-emerald)' : 'var(--accent-gold)'} />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                        Score d'Ingénierie du Prompt
                       </span>
-                    )}
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 800,
+                        fontFamily: 'var(--font-mono)',
+                        padding: '1px 7px',
+                        borderRadius: '99px',
+                        backgroundColor: promptQualityReport.score >= 85 ? 'var(--accent-emerald-subtle)' : 'var(--accent-gold-subtle)',
+                        color: promptQualityReport.score >= 85 ? 'var(--accent-emerald)' : 'var(--accent-gold)'
+                      }}>
+                        {promptQualityReport.score}/100
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {promptQualityReport.checks.map(chk => (
+                    <span
+                      key={chk.id}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        backgroundColor: chk.ok ? 'var(--accent-emerald-subtle)' : 'var(--bg-input)',
+                        color: chk.ok ? 'var(--accent-emerald)' : 'var(--text-muted)',
+                        border: chk.ok ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid var(--border-hairline)'
+                      }}
+                    >
+                      <CheckCircle2 size={11} />
+                      <span>{chk.label}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* CODE PREVIEW, LIVE EDITOR OR SPLIT COMPARISON BOX */}
+              {activeView === 'split' ? (
+                <div
+                  className="ps-split-grid"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                    gap: '0.9rem',
+                    marginBottom: '1.35rem'
+                  }}
+                >
+                  {/* Left Column: Optimized XML Prompt */}
+                  <div style={{
+                    borderRadius: '12px',
+                    border: '1px solid var(--border-focus)',
+                    backgroundColor: 'var(--bg-input)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <div style={{
+                      padding: '7px 12px',
+                      borderBottom: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-card)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '0.71rem'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Sparkles size={12} color="var(--accent-gold)" />
+                        <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-bright)', fontWeight: 700 }}>
+                          prompt_optimise.xml
+                        </span>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.67rem', color: 'var(--accent-gold)' }}>
+                        ~{Math.max(1, Math.ceil(effectiveCustomizedPrompt.length / 3.8))} tokens
+                      </span>
+                    </div>
+                    <pre style={{
+                      padding: '1rem',
+                      fontSize: '0.78rem',
+                      lineHeight: 1.6,
+                      color: 'var(--text-normal)',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      maxHeight: focusMode ? '560px' : '440px',
+                      overflowY: 'auto',
+                      flex: 1
+                    }}>
+                      <code>
+                        <HighlightedPrompt text={effectiveCustomizedPrompt} />
+                      </code>
+                    </pre>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.69rem', color: 'var(--text-muted)' }}>
-                      ~{estimatedTokens} tokens • {displayedPromptText.length} car.
-                    </span>
+                  {/* Right Column: Raw Reference Prompt */}
+                  <div style={{
+                    borderRadius: '12px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-input)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <div style={{
+                      padding: '7px 12px',
+                      borderBottom: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-card)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '0.71rem'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <FileText size={12} color="var(--text-muted)" />
+                        <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          prompt_source_brut.md
+                        </span>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.67rem', color: 'var(--text-muted)' }}>
+                        ~{rawEstimatedTokens} tokens
+                      </span>
+                    </div>
+                    <pre style={{
+                      padding: '1rem',
+                      fontSize: '0.78rem',
+                      lineHeight: 1.6,
+                      color: 'var(--text-muted)',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      maxHeight: focusMode ? '560px' : '440px',
+                      overflowY: 'auto',
+                      flex: 1
+                    }}>
+                      <code>
+                        <HighlightedPrompt text={rawReferencePromptText} />
+                      </code>
+                    </pre>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  borderRadius: '12px',
+                  border: isLiveEditing ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
+                  backgroundColor: 'var(--bg-input)',
+                  overflow: 'hidden',
+                  marginBottom: '1.35rem'
+                }}>
+                  <div style={{
+                    padding: '7px 12px',
+                    borderBottom: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-card)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.72rem',
+                    color: 'var(--text-faint)',
+                    flexWrap: 'wrap',
+                    gap: '0.4rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FileCode size={13} color="var(--accent-gold)" />
+                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-normal)' }}>
+                        {activeView === 'customized' ? 'prompt_optimise.xml' : 'prompt_source_brut.md'}
+                      </span>
+                      {manualPromptText !== null && activeView === 'customized' && (
+                        <span style={{
+                          fontSize: '0.64rem',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          backgroundColor: 'var(--accent-gold-subtle)',
+                          color: 'var(--accent-gold)',
+                          fontWeight: 700
+                        }}>
+                          Modifié manuellement
+                        </span>
+                      )}
+                    </div>
 
-                    {activeView === 'customized' && (
-                      <>
-                        {manualPromptText !== null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.69rem', color: 'var(--text-muted)' }}>
+                        ~{estimatedTokens} tokens • {displayedPromptText.length} car.
+                      </span>
+
+                      {activeView === 'customized' && (
+                        <>
+                          {manualPromptText !== null && (
+                            <button
+                              onClick={() => {
+                                setManualPromptText(null);
+                                setIsLiveEditing(false);
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                padding: '3px 7px',
+                                borderRadius: '5px',
+                                border: '1px solid var(--border-hairline)',
+                                backgroundColor: 'transparent',
+                                color: 'var(--text-muted)',
+                                fontSize: '0.68rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                              title="Revenir au prompt généré automatiquement"
+                            >
+                              <RotateCcw size={11} /> Réinitialiser
+                            </button>
+                          )}
                           <button
                             onClick={() => {
-                              setManualPromptText(null);
-                              setIsLiveEditing(false);
+                              if (!isLiveEditing && manualPromptText === null) {
+                                setManualPromptText(computedPrompt);
+                              }
+                              setIsLiveEditing(prev => !prev);
                             }}
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '3px',
-                              padding: '3px 7px',
+                              gap: '4px',
+                              padding: '3px 8px',
                               borderRadius: '5px',
-                              border: '1px solid var(--border-hairline)',
-                              backgroundColor: 'transparent',
-                              color: 'var(--text-muted)',
-                              fontSize: '0.68rem',
+                              border: isLiveEditing ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
+                              backgroundColor: isLiveEditing ? 'var(--accent-gold-subtle)' : 'var(--bg-input)',
+                              color: isLiveEditing ? 'var(--accent-gold)' : 'var(--text-normal)',
+                              fontSize: '0.69rem',
                               fontWeight: 600,
                               cursor: 'pointer'
                             }}
-                            title="Revenir au prompt généré automatiquement"
                           >
-                            <RotateCcw size={11} /> Réinitialiser
+                            {isLiveEditing ? <Eye size={11} /> : <Edit3 size={11} />}
+                            <span>{isLiveEditing ? 'Aperçu Colorisé' : 'Éditer le texte'}</span>
                           </button>
-                        )}
-                        <button
-                          onClick={() => {
-                            if (!isLiveEditing && manualPromptText === null) {
-                              setManualPromptText(computedPrompt);
-                            }
-                            setIsLiveEditing(prev => !prev);
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '3px 8px',
-                            borderRadius: '5px',
-                            border: isLiveEditing ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
-                            backgroundColor: isLiveEditing ? 'var(--accent-gold-subtle)' : 'var(--bg-input)',
-                            color: isLiveEditing ? 'var(--accent-gold)' : 'var(--text-normal)',
-                            fontSize: '0.69rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {isLiveEditing ? <Eye size={11} /> : <Edit3 size={11} />}
-                          <span>{isLiveEditing ? 'Aperçu Colorisé' : 'Éditer le texte'}</span>
-                        </button>
-                      </>
-                    )}
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {isLiveEditing && activeView === 'customized' ? (
-                  <textarea
-                    value={effectiveCustomizedPrompt}
-                    onChange={e => setManualPromptText(e.target.value)}
-                    style={{
-                      width: '100%',
-                      minHeight: focusMode ? '520px' : '380px',
+                  {isLiveEditing && activeView === 'customized' ? (
+                    <textarea
+                      value={effectiveCustomizedPrompt}
+                      onChange={e => setManualPromptText(e.target.value)}
+                      style={{
+                        width: '100%',
+                        minHeight: focusMode ? '520px' : '380px',
+                        padding: '1.25rem',
+                        fontSize: '0.82rem',
+                        lineHeight: 1.65,
+                        color: 'var(--text-bright)',
+                        backgroundColor: 'var(--bg-input)',
+                        border: 'none',
+                        fontFamily: 'var(--font-mono)',
+                        outline: 'none',
+                        resize: 'vertical'
+                      }}
+                    />
+                  ) : (
+                    <pre style={{
                       padding: '1.25rem',
                       fontSize: '0.82rem',
                       lineHeight: 1.65,
-                      color: 'var(--text-bright)',
-                      backgroundColor: 'var(--bg-input)',
-                      border: 'none',
-                      fontFamily: 'var(--font-mono)',
-                      outline: 'none',
-                      resize: 'vertical'
-                    }}
-                  />
-                ) : (
-                  <pre style={{
-                    padding: '1.25rem',
-                    fontSize: '0.82rem',
-                    lineHeight: 1.65,
-                    color: 'var(--text-normal)',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    maxHeight: focusMode ? '580px' : '440px',
-                    overflowY: 'auto'
-                  }}>
-                    <code>
-                      <HighlightedPrompt text={displayedPromptText} />
-                    </code>
-                  </pre>
-                )}
-              </div>
+                      color: 'var(--text-normal)',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      maxHeight: focusMode ? '580px' : '440px',
+                      overflowY: 'auto'
+                    }}>
+                      <code>
+                        <HighlightedPrompt text={displayedPromptText} />
+                      </code>
+                    </pre>
+                  )}
+                </div>
+              )}
 
               {/* STRATEGIC NOTE (EXECUTIVE BRIEF) */}
               {activePrompt.guide_fr && (
@@ -2394,6 +2851,9 @@ export default function App() {
                     <option value="Automation">Agents IA & Automatisation</option>
                     <option value="Business">Productivité & Stratégie</option>
                     <option value="Finance">Data, Finance & Analyse</option>
+                    <option value="Ecommerce">E-Commerce & Retail</option>
+                    <option value="Operations">Juridique, RH & Opérations</option>
+                    <option value="Media">Vidéo, YouTube & Créateurs</option>
                   </select>
                 </div>
               </div>
@@ -2781,6 +3241,197 @@ export default function App() {
         </div>
       )}
 
+      {/* MODAL 3: COMMAND PALETTE (⌘K — RAYCAST / LINEAR STYLE) */}
+      {isCommandPaletteOpen && (
+        <div
+          className="ps-command-palette"
+          onClick={() => setIsCommandPaletteOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'var(--bg-modal-backdrop)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            padding: '8vh 1rem 1rem',
+            zIndex: 120
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '640px',
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-focus)',
+              borderRadius: '14px',
+              overflow: 'hidden',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.65)',
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: '78vh'
+            }}
+          >
+            {/* Search Input Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              padding: '0.85rem 1rem',
+              borderBottom: '1px solid var(--border-hairline)',
+              backgroundColor: 'var(--bg-input)'
+            }}>
+              <Search size={16} color="var(--accent-gold)" style={{ flexShrink: 0 }} />
+              <input
+                ref={commandInputRef}
+                type="text"
+                placeholder="Rechercher parmi les 144 prompts, 9 playbooks ou lancer une action..."
+                value={commandQuery}
+                onChange={e => {
+                  setCommandQuery(e.target.value);
+                  setCommandSelectedIndex(0);
+                }}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-bright)',
+                  fontSize: '0.88rem',
+                  fontWeight: 500
+                }}
+              />
+              <kbd
+                onClick={() => setIsCommandPaletteOpen(false)}
+                style={{
+                  fontSize: '0.66rem',
+                  fontFamily: 'var(--font-mono)',
+                  padding: '2px 6px',
+                  borderRadius: '5px',
+                  backgroundColor: 'var(--bg-card)',
+                  border: '1px solid var(--border-hairline)',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
+              >
+                ESC
+              </kbd>
+            </div>
+
+            {/* Results List */}
+            <div style={{ overflowY: 'auto', padding: '0.5rem', flex: 1 }}>
+              {commandItems.length === 0 ? (
+                <div style={{ padding: '2rem 1rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-faint)' }}>
+                  Aucun résultat pour « {commandQuery} ».
+                </div>
+              ) : (
+                commandItems.map((item, idx) => {
+                  const isSelected = idx === Math.min(commandSelectedIndex, commandItems.length - 1);
+                  const showGroupHeader = idx === 0 || commandItems[idx - 1].groupLabel !== item.groupLabel;
+                  return (
+                    <React.Fragment key={item.id}>
+                      {showGroupHeader && (
+                        <div style={{
+                          padding: '0.5rem 0.65rem 0.25rem',
+                          fontSize: '0.64rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
+                          color: 'var(--text-faint)'
+                        }}>
+                          {item.groupLabel}
+                        </div>
+                      )}
+                      <div
+                        onClick={() => executeCommandItem(item)}
+                        onMouseEnter={() => setCommandSelectedIndex(idx)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          padding: '0.55rem 0.75rem',
+                          borderRadius: '8px',
+                          backgroundColor: isSelected ? 'var(--bg-highlight)' : 'transparent',
+                          border: isSelected ? '1px solid var(--border-focus)' : '1px solid transparent',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.08s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+                          {item.type === 'action' ? (
+                            <Sparkles size={14} color={isSelected ? 'var(--accent-gold)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
+                          ) : item.type === 'playbook' ? (
+                            <Compass size={14} color={isSelected ? 'var(--accent-gold)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
+                          ) : (
+                            <FileCode size={14} color={isSelected ? 'var(--accent-gold)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
+                          )}
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{
+                              fontSize: '0.8rem',
+                              fontWeight: isSelected ? 700 : 600,
+                              color: isSelected ? 'var(--text-bright)' : 'var(--text-normal)',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {item.title}
+                            </div>
+                            {item.subtitle && (
+                              <div style={{
+                                fontSize: '0.7rem',
+                                color: 'var(--text-muted)',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}>
+                                {item.subtitle}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0 }}>
+                          <span style={{
+                            fontSize: '0.64rem',
+                            fontWeight: 700,
+                            padding: '2px 7px',
+                            borderRadius: '5px',
+                            backgroundColor: isSelected ? 'var(--accent-gold-subtle)' : 'var(--bg-input)',
+                            color: isSelected ? 'var(--accent-gold)' : 'var(--text-muted)',
+                            border: '1px solid var(--border-hairline)'
+                          }}>
+                            {item.badge}
+                          </span>
+                          {isSelected && <CornerDownLeft size={12} color="var(--accent-gold)" />}
+                        </div>
+                      </div>
+                    </React.Fragment>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer Hints */}
+            <div style={{
+              padding: '0.5rem 0.9rem',
+              borderTop: '1px solid var(--border-hairline)',
+              backgroundColor: 'var(--bg-sidebar)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.68rem',
+              color: 'var(--text-faint)'
+            }}>
+              <span>Navigation rapide au clavier</span>
+              <span style={{ fontFamily: 'var(--font-mono)' }}>↑↓ Naviguer • ↵ Exécuter • ESC Fermer</span>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+

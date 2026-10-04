@@ -33,7 +33,7 @@
 - **Propriétés de la base** :
   - `Nom` (Title) : Titre en français avec icône emoji.
   - `Titre Original` (Rich text) : Titre source en anglais.
-  - `Catégorie` (Select) : `Marketing`, `Coding`, `Design`, `Sales`, `Copywriting`, `SEO`, `Automation`, `Business`, `Finance`.
+  - `Catégorie` (Select) : `Marketing`, `Coding`, `Design`, `Sales`, `Copywriting`, `SEO`, `Automation`, `Business`, `Finance`, `Ecommerce`, `Operations`, `Media`.
   - `Modèles IA` (Multi-select) : Modèles recommandés (ChatGPT, Claude, Gemini, DeepSeek...).
   - `Variables` (Rich text) : Liste des variables interactives.
 - **Structure des blocs internes Notion** :
@@ -45,9 +45,9 @@
 
 ---
 
-## 4. État de la Bibliothèque (108 Prompts Actifs)
+## 4. État de la Bibliothèque (144 Prompts Actifs & 9 Playbooks)
 
-La bibliothèque compte actuellement 108 prompts opérationnels parfaitement équilibrés dans 9 thématiques (12 prompts par catégorie) :
+La bibliothèque compte actuellement **144 prompts opérationnels** parfaitement équilibrés dans **12 thématiques métiers** (12 prompts par catégorie) :
 - **Marketing & Croissance** (12 prompts) : Landing pages, tunnels de vente, piliers de contenu, stratégie 360°, hooks LinkedIn, onboarding email, posts multi-plateformes, etc.
 - **Code & Développement** (12 prompts) : Architecte logiciel full-stack, schémas de bases de données, convertisseur NL-to-SQL, optimisation SQL, intégrations API & Webhooks, QA Frontend, documentation technique, web scraping, décrypteur de code legacy, audit de sécurité OWASP, débogueur systématique, pipeline qualité CI/CD.
 - **Design & Visuels** (12 prompts) : Publicités de luxe & parfums, portraits cinématographiques, mockups packaging, logos minimalistes, shooting photo éditorial, illustrations flat design, architecture UI/UX de sites web, interfaces SaaS & dashboards, lookbooks mode, mockups affichage urbain OOH, photographie cosmétique macro, rendus architecturaux.
@@ -57,22 +57,30 @@ La bibliothèque compte actuellement 108 prompts opérationnels parfaitement éq
 - **Agents IA & Automatisation** (12 prompts) : Workflows n8n, systèmes d'automatisation métier, directives d'agents autonomes, chatbots support client IA, audit d'opportunités d'automatisation, scripts Cron/Python, méta-prompt d'ingénierie de prompt, protocoles d'escalade IA→Humain, onboarding conversationnel, agent de veille marché, agent navigateur web, garde-fous System Prompts.
 - **Productivité & Stratégie Business** (12 prompts) : Business Plan exécutif, matrice d'arbitrage dirigeant, tableaux de bord KPIs & OKRs, roadmap d'activation produit, plan 0 à 10k€ MRR, roadmap R&D (RICE/ICE), gestion de projet minimaliste, coaching leadership exécutif, montée en compétences (Pareto), stratégie Océan Bleu, ingénierie de fidélisation LTV, productivité Deep Work.
 - **Data, Finance & Analyse** (12 prompts) : Projections financières & P&L, prévisionnel de trésorerie & BFR, stratégie de Pricing Power, analyse de rentabilité (ROI/TRI/VAN), stress-test de trésorerie, rapports d'analyse de données, audit Unit Economics (LTV/CAC), architecture plateforme BI, budgets prévisionnels projets, contrôle de gestion agile, accélération du cash-flow, plan de marquage analytique GA4/GTM.
+- **E-Commerce & Retail (`Ecommerce`)** (12 prompts) : Fiches produits haute conversion, bundles & hausse du panier moyen (AOV), séquences paniers abandonnés, extraction Voice-of-Customer (avis clients), drops & collections saisonnières, SEO Amazon A9/COSMO, fidélisation post-achat LTV, réduction des retours, war-room Black Friday (BFCM), offres par abonnement anti-churn, quiz funnel zero-party data, négociation fournisseurs & MOQ.
+- **Juridique, RH & Opérations (`Operations`)** (12 prompts) : Procédures standardisées (SOP), Scorecards de recrutement A-Players, grilles d'entretien structuré anti-biais, plans d'onboarding 30-60-90 jours, audit de clauses contractuelles B2B, conformité RGPD (ROPA/DPA), évaluations annuelles & feedback 360°, communication interne & gestion du changement, cahiers des charges RFP & sélection prestataires, manuel d'équipe asynchrone, gestion d'incidents critiques SEV-1 & SLA, cahiers de mission freelance (SOW).
+- **Vidéo, YouTube & Créateurs (`Media`)** (12 prompts) : Scripts YouTube long format haute rétention, hooks viraux 3 secondes (TikTok/Reels/Shorts), laboratoire de miniatures & titres CTR > 10 %, production d'épisodes de podcast & interviews profondes, moteur de repurposing (1 vidéo → 12 actifs omnicanaux), storytelling documentaire, pitch sponsoring & ad-reads natifs, webinaires & masterclass live, capsules edutainment 60s, bible de positionnement de chaîne, direction artistique de montage B-Roll/SFX, adaptation d'articles en émissions vidéo.
 
 Les données de production sont stockées dans :
-- `src/data/prompts.json` (108 prompts répartis dans les 9 catégories)
-- `src/data/playbooks.json` (6 Playbooks Multi-Étapes de 5 étapes chacun pour enchaîner les prompts de façon guidée)
+- `src/data/prompts.json` (144 prompts répartis dans les 12 catégories)
+- `src/data/playbooks.json` (9 Playbooks Multi-Étapes de 5 étapes chacun = 45 étapes guidées)
 
 Fonctionnalités avancées de l'Atelier (`src/App.jsx`) :
+- **Palette de Commande Modale `⌘K` (façon Raycast / Linear)** : Recherche floue instantanée sur les 144 prompts, les 9 Playbooks et les Actions Rapides avec navigation intégrale au clavier (`↑`, `↓`, `Entrée`, `ESC`).
+- **Score d'Ingénierie du Prompt (`/100`) & Checklist Qualité en Direct** : Évaluation temps réel de la structure XML (`<system_role>`, `<execution_guidelines>`, `<structured_output_schema>`), du remplissage des variables interactives et de l'injection contextuelle.
+- **Mode Comparaison Côte-à-Côte (`Split-View`)** : Affichage simultané sur 2 colonnes du `prompt_optimise.xml` et du `prompt_source_brut.md`.
+- **Historique des Prompts Récemment Copiés** : Filtre dédié (`Récemment Copiés`) mémorisant les 15 derniers prompts utilisés.
 - **Playbooks Guidés** : Parcours séquentiels avec suivi de progression (`localStorage`), notes de transition entre les étapes et navigation directe.
 - **Profils de Contexte Global** : Injection automatique d'un bloc `<workspace_context_profile>` et pré-remplissage intelligent des variables.
 - **Studio XML Colorisé & Édition Live** : Coloration syntaxique des balises XML et variables `{{...}}`, compteur de tokens estimés en temps réel (`~X tokens`) et mode d'édition libre du prompt final avant copie ou export `.md`.
-- **Backup & Restore JSON** : Export et import complet de l'espace utilisateur (Favoris, Prompts Sur-Mesure, Profils de Contexte, Progression Playbooks).
+- **Backup & Restore JSON** : Export et import complet de l'espace utilisateur (Favoris, Prompts Sur-Mesure, Profils de Contexte, Progression Playbooks, Historique).
 
 ---
 
 ## 5. Scripts d'Automatisation & Pipelines (`scripts/`)
 
-- `scripts/enrich_library_batch.py` : Script tout-en-un pour extraire des lots de prompts, traduire les métadonnées, optimiser les prompts, les envoyer dans Notion et mettre à jour `src/data/prompts.json`.
+- `scripts/enrich_library_batch.py` & `scripts/enrich_library_phase5.py` : Scripts d'enrichissement par lots pour structurer les prompts en balises XML, les synchroniser sur Notion et mettre à jour `src/data/prompts.json` en 100 % marque blanche.
+- `scripts/verify_phase5.py` : Suite de tests automatisés vérifiant les 144 prompts, les 12 catégories, les 9 Playbooks, la Palette `⌘K`, le Score de Qualité, le Mode Split-View et l'absence totale d'URL externe ou d'emoji décoratif dans `src/App.jsx`.
 - `scripts/update_guides_french.py` : Met à jour les guides stratégiques français sur Notion et sur l'application web.
 - `scripts/update_french_descriptions.py` : Rafraîchit les descriptions longues traduites.
 - `scripts/filter_categories.py` : Analyse le catalogue complet (7 000+ slugs) pour identifier de nouveaux prompts par mot-clé.
