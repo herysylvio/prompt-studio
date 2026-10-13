@@ -7,7 +7,8 @@ import {
   Trash2, Edit3, X, FolderHeart, CheckCircle2, Keyboard, ListFilter,
   Bot, Briefcase, LineChart, UserCheck, Wand2, Upload, Save,
   Compass, ChevronRight, ChevronLeft, Eye,
-  ShoppingCart, Scale, Video, History, Columns2, Gauge, CornerDownLeft
+  ShoppingCart, Scale, Video, History, Columns2, Gauge, CornerDownLeft,
+  FlaskConical, FileSpreadsheet, Layers3, SlidersHorizontal, ShieldAlert, ListOrdered, Play, FileCheck2, Boxes
 } from 'lucide-react';
 import promptsData from './data/prompts.json';
 import playbooksData from './data/playbooks.json';
@@ -166,6 +167,38 @@ export default function App() {
     brand_voice: '',
     tech_or_metrics: ''
   });
+
+  // Prompt Builder Wizard states
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [builderStep, setBuilderStep] = useState(1);
+  const [builderForm, setBuilderForm] = useState({
+    title_fr: '',
+    category: 'Marketing',
+    description_fr: '',
+    role: '',
+    seniority: 'Principal Staff Specialist',
+    domain: '',
+    objective: '',
+    variables: [
+      { name: 'Sujet Principal', placeholder: '{{sujet-principal}}', desc_fr: 'Thème ou livrable central' },
+      { name: 'Public Cible', placeholder: '{{public-cible}}', desc_fr: 'Audience ou profil visé' }
+    ],
+    guidelines: [
+      'Analyser en profondeur les paramètres d’entrée avant toute exécution',
+      'Proposer des solutions concrètes immédiatement déployables sans remplissage générique',
+      'Structurer la réponse selon le schéma déterministe avec une précision de niveau expert'
+    ],
+    negativeConstraints: 'Pas de platitudes ni de jargon creux. Ne pas omettre les cas limites ni les garde-fous de scaling.',
+    outputSections: [
+      '1. Architecture Stratégique & Principes Fondateurs',
+      '2. Plan d’Exécution & Livrables Concrets Prêts au Déploiement',
+      '3. Garde-Fous de Scaling & Métriques de Validation'
+    ]
+  });
+
+  // Output Sandbox states
+  const [sandboxModelStyle, setSandboxModelStyle] = useState('claude'); // 'claude' | 'chatgpt' | 'gemini'
+  const [copiedSandbox, setCopiedSandbox] = useState(false);
 
   const searchInputRef = useRef(null);
   const activeCardRef = useRef(null);
@@ -529,6 +562,214 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  // Assembled Builder Prompt (Computed live from Prompt Builder Wizard form)
+  const assembledBuilderPrompt = useMemo(() => {
+    const role = (builderForm.role || 'Executive Principal AI Strategist').trim();
+    const seniority = (builderForm.seniority || 'Principal Staff Specialist').trim();
+    const domain = (builderForm.domain || builderForm.category || 'Stratégie & Métier').trim();
+    const objective = (builderForm.objective || builderForm.description_fr || 'Produire une solution déterministe d’excellence').trim();
+
+    const variablesXml = builderForm.variables && builderForm.variables.length > 0
+      ? builderForm.variables.map(v => `    <${v.placeholder.replace(/[{}]/g, '').replace(/[- ]+/g, '_')}>${v.placeholder}</${v.placeholder.replace(/[{}]/g, '').replace(/[- ]+/g, '_')}> <!-- ${v.desc_fr || v.name} -->`).join('\n')
+      : '    <sujet_principal>{{sujet-principal}}</sujet_principal>';
+
+    const guidelinesXml = builderForm.guidelines && builderForm.guidelines.length > 0
+      ? builderForm.guidelines.map(g => `    - ${g}`).join('\n')
+      : '    - Analyser avec rigueur chaque contrainte métier avant toute synthèse\n    - Formuler des livrables exploitables sans platitudes';
+
+    const outputSectionsXml = builderForm.outputSections && builderForm.outputSections.length > 0
+      ? builderForm.outputSections.map(sec => `    <section title="${sec}">\n      [Livrable ultra-détaillé, métriques cibles et étapes de validation]\n    </section>`).join('\n')
+      : '    <section title="1. Synthèse Opérationnelle & Livrables">\n      [Contenu déterministe de haut niveau]\n    </section>';
+
+    const negativeConstraints = builderForm.negativeConstraints
+      ? `  <negative_constraints>\n    ${builderForm.negativeConstraints}\n  </negative_constraints>\n\n`
+      : '';
+
+    return `<system_role>
+  You are an elite ${role} (${seniority}) specializing in ${domain}.
+  Your primary mission: ${objective}.
+</system_role>
+
+<input_parameters>
+${variablesXml}
+</input_parameters>
+
+<execution_guidelines>
+${guidelinesXml}
+</execution_guidelines>
+
+${negativeConstraints}<structured_output_schema>
+${outputSectionsXml}
+</structured_output_schema>`;
+  }, [builderForm]);
+
+  // Simulated AI Output Sandbox generator (Deterministic, highly realistic output simulation)
+  const simulatedOutput = useMemo(() => {
+    if (!activePrompt) return '';
+    const style = sandboxModelStyle;
+    const title = activePrompt.title_fr;
+    const cat = activePrompt.category;
+    const modelBadge = style === 'claude' ? 'Claude 3.5 Sonnet' : style === 'chatgpt' ? 'ChatGPT (GPT-4o)' : 'Gemini 1.5 Pro';
+
+    // Collect effective variable values
+    const varsDisplay = (activePrompt.variables_list || []).map(v => {
+      const val = (variableInputs[v.name] || '').trim();
+      return `- **${v.name}** : \`${val || `[Non renseigné : ${v.placeholder}]`}\``;
+    }).join('\n');
+
+    let personaIntro = '';
+    let analysisBlock = '';
+    let recommendationsBlock = '';
+    let guardrailsBlock = '';
+
+    if (style === 'claude') {
+      personaIntro = `### Analyse Stratégique & Cadre d'Exécution\nEn tant que spécialiste senior pour la thématique **${title}** (${cat}), j'ai analysé les paramètres fournis et consolidé une architecture d'action sans compromis sur la rigueur.`;
+      analysisBlock = `#### 1. Diagnostic des Paramètres d'Entrée\n${varsDisplay || '- Paramètres standards appliqués.'}\n\n*Évaluation des leviers clés :* La cohérence entre les objectifs fixés et le périmètre opérationnel permet d'envisager un déploiement fluide en évitant les écueils habituels de dispersion.`;
+      recommendationsBlock = `#### 2. Plan d'Action & Livrables Concrets\n- **Axe Prioritaire (Immédiat - S+1)** : Formalisation de la matrice décisionnelle et alignement des parties prenantes.\n- **Axe Structurant (S+2 à S+4)** : Déploiement des livrables selon les spécifications précises du schéma structuré.\n- **Axe d'Optimisation Continue** : Revue itérative basée sur des données mesurables et feedback terrain.`;
+      guardrailsBlock = `#### 3. Garde-Fous de Scaling & Métriques de Validation\n- **Indicateur Clé de Réussite (KPI 1)** : Taux de conformité aux critères d'acceptation > 95%.\n- **Garde-fou** : Aucune validation sans revue préalable de sécurité et de viabilité opérationnelle.`;
+    } else if (style === 'chatgpt') {
+      personaIntro = `### Synthèse Opérationnelle & Feuille de Route\nVoici le plan d'exécution complet et immédiatement actionnable conçu pour **${title}**.`;
+      analysisBlock = `#### 1. Paramètres Pris en Compte\n${varsDisplay || '- Paramètres configurés par défaut.'}\n\n> **Objectif clé :** Atteindre une exécution directe avec une vélocité maximale sans compromettre la qualité.`;
+      recommendationsBlock = `#### 2. Livrables Directs Clés en Main\n1. **Synthèse Exécutive** : Cadrage validé et priorités arrêtées.\n2. **Guide Opérationnel** : Procédure pas-à-pas prête au déploiement pour votre équipe.\n3. **Boîte à Outils d'Accélération** : Checklists de contrôle qualité avant mise en production.`;
+      guardrailsBlock = `#### 3. Facteurs Clés de Succès\n- Alignement continu des équipes sur les jalons hebdomadaires.\n- Rigueur dans le respect des contraintes d'optimisation définies.`;
+    } else {
+      // Gemini style
+      personaIntro = `### Cartographie Exhaustive & Architecture Globale\n**Modèle d'Exécution :** Analyse multi-dimensionnelle pour le module **${title}**.`;
+      analysisBlock = `#### 1. Matrice des Données d'Entrée\n${varsDisplay || '- Données standards.'}\n\nL'analyse croisée démontre un alignement fort avec les bonnes pratiques du domaine (${cat}).`;
+      recommendationsBlock = `#### 2. Recommandations Haute Densité Informationnelle\n* **Phase d'Amorçage** : Mise en place des fondations techniques et organisationnelles.\n* **Phase d'Accélération** : Industrialisation des processus et automatisation des tâches récurrentes.\n* **Phase de Consolidation** : Monitoring prédictif et capitalisation des apprentissages.`;
+      guardrailsBlock = `#### 3. Évaluation des Risques & Mitigations\n- **Risque d'écart de cadrage** : Mitigé par des points de synchronisation synchrones et asynchrones.\n- **Seuil de tolérance** : Zéro écart non documenté lors du cycle de revue.`;
+    }
+
+    return `# [Simulation de Sortie — ${modelBadge}]
+**Module :** ${title} (${cat})
+**Date de simulation :** ${new Date().toLocaleDateString('fr-FR')}
+
+---
+
+${personaIntro}
+
+${analysisBlock}
+
+${recommendationsBlock}
+
+${guardrailsBlock}
+
+---
+*Sortie simulée générée par Prompt Studio via analyse du schéma déterministe.*`;
+  }, [activePrompt, sandboxModelStyle, variableInputs]);
+
+  // Export Professional Team Specification (.md)
+  const handleExportTeamSpec = () => {
+    if (!activePrompt) return;
+    const specDate = new Date().toLocaleDateString('fr-FR');
+    const isoDate = new Date().toISOString().slice(0, 10);
+    const varsTable = (activePrompt.variables_list && activePrompt.variables_list.length > 0)
+      ? [
+          '| Paramètre | Clé XML / Placeholder | Valeur Actuelle | Description Fonctionnelle |',
+          '| :--- | :--- | :--- | :--- |',
+          ...activePrompt.variables_list.map(v => {
+            const currentVal = (variableInputs[v.name] || '').trim();
+            const safeVal = currentVal ? currentVal.replace(/\|/g, '\\|') : '*[Non renseigné]*';
+            return `| **${v.name}** | \`${v.placeholder}\` | ${safeVal} | ${v.desc_fr || '-'} |`;
+          })
+        ].join('\n')
+      : '*Aucun paramètre dynamique requis pour ce module.*';
+
+    const specContent = [
+      `# Fiche de Spécification Technique & Gouvernance IA`,
+      `**Module :** ${activePrompt.title_fr}`,
+      `**Référence Identifiant :** \`${activePrompt.id}\` | **Date d'Émission :** ${specDate}`,
+      ``,
+      `---`,
+      ``,
+      `## 1. Cartouche de Gouvernance & Métadonnées`,
+      `- **Catégorie Fonctionnelle** : ${activePrompt.category}`,
+      `- **Modèles IA Cibles Homologués** : ${(activePrompt.models || []).join(', ')}`,
+      `- **Score de Rigueur du Prompt** : ${promptQualityReport.score}/100`,
+      `- **Profil Métier Actif** : ${activeProfile ? activeProfile.name : 'Profil Standard (Aucun)'}`,
+      `- **Nombre de Tokens Estimés** : ~${estimatedTokens} tokens`,
+      ``,
+      `## 2. Objectif Métier & Contexte d'Utilisation`,
+      activePrompt.description_fr,
+      ``,
+      `## 3. Matrice des Paramètres & Variables d'Entrée`,
+      varsTable,
+      ``,
+      activePrompt.guide_fr ? `## 4. Directive Stratégique d'Exécution\n${activePrompt.guide_fr}\n` : '',
+      `## 5. Spécification Complète du Prompt Déployable`,
+      '```xml',
+      effectiveCustomizedPrompt,
+      '```',
+      ``,
+      `---`,
+      `*Document généré automatiquement via Prompt Studio — Tous droits réservés.*`
+    ].filter(Boolean).join('\n');
+
+    const blob = new Blob([specContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `spec-technique-${activePrompt.id || 'prompt'}-${isoDate}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Prompt Builder Modal controls
+  const openPromptBuilder = () => {
+    setBuilderStep(1);
+    setBuilderForm({
+      title_fr: '',
+      category: 'Marketing',
+      description_fr: '',
+      role: 'Principal Staff AI Strategist',
+      seniority: 'Principal Staff Specialist',
+      domain: 'Stratégie & Métier',
+      objective: 'Générer une solution déterministe avec une précision d’excellence',
+      variables: [
+        { name: 'Sujet Principal', placeholder: '{{sujet-principal}}', desc_fr: 'Thème ou livrable central' },
+        { name: 'Public Cible', placeholder: '{{public-cible}}', desc_fr: 'Audience ou profil visé' }
+      ],
+      guidelines: [
+        'Analyser en profondeur les paramètres d’entrée avant toute exécution',
+        'Proposer des solutions concrètes immédiatement déployables sans remplissage générique',
+        'Structurer la réponse selon le schéma déterministe avec une précision de niveau expert'
+      ],
+      negativeConstraints: 'Pas de platitudes ni de jargon creux. Ne pas omettre les cas limites ni les garde-fous de scaling.',
+      outputSections: [
+        '1. Architecture Stratégique & Principes Fondateurs',
+        '2. Plan d’Exécution & Livrables Concrets Prêts au Déploiement',
+        '3. Garde-Fous de Scaling & Métriques de Validation'
+      ]
+    });
+    setIsBuilderOpen(true);
+  };
+
+  const handleApplyBuilderToWorkbench = () => {
+    const newId = `custom-builder-${Date.now()}`;
+    const builtPrompt = {
+      id: newId,
+      title_fr: builderForm.title_fr.trim() || 'Prompt Conçu via Assistant Guidé',
+      title_en: builderForm.role || 'Custom Built Prompt',
+      category: builderForm.category || 'Sur-Mesure',
+      description_fr: builderForm.description_fr.trim() || builderForm.objective || 'Prompt conçu avec l’assistant pas-à-pas.',
+      models: ['Claude 3.5 Sonnet', 'GPT-4o', 'Gemini 1.5 Pro'],
+      variables_list: builderForm.variables || [],
+      variables_fr: (builderForm.variables || []).map(v => v.name).join(', '),
+      original_prompt: assembledBuilderPrompt,
+      optimized_prompt: assembledBuilderPrompt,
+      guide_fr: `Directive : Prompt conçu selon le standard XML Prompt Studio avec ${builderForm.guidelines.length} directives et schéma structuré.`,
+      isCustom: true
+    };
+    setCustomPrompts(prev => [builtPrompt, ...prev]);
+    setActivePlaybookId(null);
+    setActivePromptId(builtPrompt.id);
+    setIsBuilderOpen(false);
+    setActiveView('customized');
+    setMobilePane('workbench');
+  };
+
   // Export Workspace Backup (.json)
   const handleExportWorkspaceJSON = () => {
     const payload = {
@@ -597,6 +838,22 @@ export default function App() {
         badge: 'Action'
       },
       {
+        id: 'act-prompt-builder',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: 'Lancer l’Assistant Guidé (Prompt Builder)',
+        subtitle: 'Concevoir un prompt XML de niveau élite en 4 étapes interactives',
+        badge: 'Wizard'
+      },
+      {
+        id: 'act-export-spec',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: 'Générer la Spécification Technique & Équipe (.md)',
+        subtitle: 'Exporter la fiche de gouvernance, tableau des variables et prompt actif',
+        badge: 'Export Pro'
+      },
+      {
         id: 'act-new-profile',
         type: 'action',
         groupLabel: 'Actions Rapides',
@@ -611,6 +868,14 @@ export default function App() {
         title: activeView === 'split' ? 'Revenir à la Vue Prompt Optimisé' : 'Activer la Comparaison Côte-à-Côte (Split-View)',
         subtitle: 'Comparer en direct le Prompt Optimisé XML et le Prompt Source Brut',
         badge: 'Atelier'
+      },
+      {
+        id: 'act-sandbox-view',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: activeView === 'sandbox' ? 'Revenir au Prompt Optimisé' : 'Ouvrir le Simulateur de Sorties Multi-Modèles',
+        subtitle: 'Tester le comportement attendu selon Claude, ChatGPT ou Gemini',
+        badge: 'Simulation'
       },
       {
         id: 'act-focus-mode',
@@ -677,11 +942,18 @@ export default function App() {
     if (item.type === 'action') {
       if (item.id === 'act-new-prompt') {
         openNewPromptModal();
+      } else if (item.id === 'act-prompt-builder') {
+        openPromptBuilder();
+      } else if (item.id === 'act-export-spec') {
+        handleExportTeamSpec();
       } else if (item.id === 'act-new-profile') {
         openNewProfileModal();
       } else if (item.id === 'act-split-view') {
         setIsLiveEditing(false);
         setActiveView(prev => prev === 'split' ? 'customized' : 'split');
+      } else if (item.id === 'act-sandbox-view') {
+        setIsLiveEditing(false);
+        setActiveView(prev => prev === 'sandbox' ? 'customized' : 'sandbox');
       } else if (item.id === 'act-focus-mode') {
         setFocusMode(prev => !prev);
       } else if (item.id === 'act-toggle-theme') {
@@ -1145,14 +1417,37 @@ export default function App() {
                   </button>
 
                   <button
-                    onClick={openNewPromptModal}
+                    onClick={openPromptBuilder}
                     style={{
-                      flex: 1.15,
+                      flex: 1.1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.35rem',
-                      padding: '6px 8px',
+                      padding: '6px 7px',
+                      borderRadius: '7px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-input)',
+                      color: 'var(--text-bright)',
+                      fontSize: '0.73rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                    title="Concevoir un prompt XML d’élite via l'Assistant Guidé pas-à-pas"
+                  >
+                    <Wand2 size={13} color="var(--accent-gold)" />
+                    <span>Assistant</span>
+                  </button>
+
+                  <button
+                    onClick={openNewPromptModal}
+                    style={{
+                      flex: 1.1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      padding: '6px 7px',
                       borderRadius: '7px',
                       border: '1px solid var(--border-focus)',
                       backgroundColor: 'var(--accent-gold-subtle)',
@@ -1977,6 +2272,27 @@ export default function App() {
                   </button>
 
                   <button
+                    onClick={handleExportTeamSpec}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-card)',
+                      color: 'var(--accent-gold)',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                    title="Télécharger la fiche de spécification technique & gouvernance d’équipe (.md)"
+                  >
+                    <FileSpreadsheet size={13} />
+                    <span>Fiche Spécification</span>
+                  </button>
+
+                  <button
                     onClick={handleExportMarkdown}
                     style={{
                       display: 'inline-flex',
@@ -2143,6 +2459,29 @@ export default function App() {
                   >
                     <Columns2 size={13} color={activeView === 'split' ? 'var(--accent-gold)' : 'currentColor'} />
                     <span>Comparaison Split</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsLiveEditing(false);
+                      setActiveView('sandbox');
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '6px 11px',
+                      borderRadius: '6px',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      border: 'none',
+                      backgroundColor: activeView === 'sandbox' ? 'var(--border-card)' : 'transparent',
+                      color: activeView === 'sandbox' ? 'var(--text-bright)' : 'var(--text-muted)',
+                      cursor: 'pointer'
+                    }}
+                    title="Simuler la réponse IA attendue selon le modèle (Claude, ChatGPT, Gemini)"
+                  >
+                    <FlaskConical size={13} color={activeView === 'sandbox' ? 'var(--accent-gold)' : 'currentColor'} />
+                    <span>Simulation de Réponse</span>
                   </button>
                 </div>
 
@@ -2467,8 +2806,112 @@ export default function App() {
                 </div>
               </div>
 
-              {/* CODE PREVIEW, LIVE EDITOR OR SPLIT COMPARISON BOX */}
-              {activeView === 'split' ? (
+              {/* CODE PREVIEW, LIVE EDITOR, SPLIT COMPARISON OR OUTPUT SANDBOX BOX */}
+              {activeView === 'sandbox' ? (
+                <div style={{
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-focus)',
+                  backgroundColor: 'var(--bg-input)',
+                  overflow: 'hidden',
+                  marginBottom: '1.35rem'
+                }}>
+                  {/* Sandbox Header with Model Switchers */}
+                  <div style={{
+                    padding: '8px 14px',
+                    borderBottom: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-card)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.6rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FlaskConical size={14} color="var(--accent-gold)" />
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                        Simulateur de Sortie Multi-Modèles
+                      </span>
+                      <span style={{
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        padding: '1px 7px',
+                        borderRadius: '99px',
+                        backgroundColor: 'var(--accent-gold-subtle)',
+                        color: 'var(--accent-gold)'
+                      }}>
+                        Sandbox Déterministe
+                      </span>
+                    </div>
+
+                    {/* Model Style Switcher */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      {[
+                        { id: 'claude', label: 'Claude 3.5 Sonnet' },
+                        { id: 'chatgpt', label: 'ChatGPT (GPT-4o)' },
+                        { id: 'gemini', label: 'Gemini 1.5 Pro' }
+                      ].map(m => (
+                        <button
+                          key={m.id}
+                          onClick={() => setSandboxModelStyle(m.id)}
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                            border: sandboxModelStyle === m.id ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
+                            backgroundColor: sandboxModelStyle === m.id ? 'var(--accent-gold-subtle)' : 'var(--bg-input)',
+                            color: sandboxModelStyle === m.id ? 'var(--accent-gold)' : 'var(--text-muted)',
+                            fontSize: '0.69rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(simulatedOutput);
+                          setCopiedSandbox(true);
+                          setTimeout(() => setCopiedSandbox(false), 2000);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '3px 9px',
+                          borderRadius: '5px',
+                          border: 'none',
+                          backgroundColor: copiedSandbox ? 'var(--accent-emerald)' : 'var(--accent-gold)',
+                          color: '#000000',
+                          fontSize: '0.69rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          marginLeft: '0.4rem'
+                        }}
+                        title="Copier la sortie simulée"
+                      >
+                        {copiedSandbox ? <Check size={11} /> : <Copy size={11} />}
+                        <span>{copiedSandbox ? 'Copié' : 'Copier Réponse'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Sandbox Simulated Output Display */}
+                  <pre style={{
+                    padding: '1.25rem',
+                    fontSize: '0.82rem',
+                    lineHeight: 1.65,
+                    color: 'var(--text-normal)',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    maxHeight: focusMode ? '580px' : '460px',
+                    overflowY: 'auto',
+                    fontFamily: 'var(--font-mono)'
+                  }}>
+                    <code>{simulatedOutput}</code>
+                  </pre>
+                </div>
+              ) : activeView === 'split' ? (
                 <div
                   className="ps-split-grid"
                   style={{
@@ -3426,6 +3869,684 @@ export default function App() {
             }}>
               <span>Navigation rapide au clavier</span>
               <span style={{ fontFamily: 'var(--font-mono)' }}>↑↓ Naviguer • ↵ Exécuter • ESC Fermer</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: PROMPT BUILDER INTERACTIVE WIZARD (Phase 6) */}
+      {isBuilderOpen && (
+        <div
+          onClick={() => setIsBuilderOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'var(--bg-modal-backdrop)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.25rem',
+            zIndex: 120
+          }}
+        >
+          <div
+            className="ps-prompt-builder"
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '920px',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-focus)',
+              borderRadius: '14px',
+              padding: '1.5rem',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.2rem'
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-hairline)', paddingBottom: '0.9rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--accent-gold-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--accent-gold)'
+                }}>
+                  <Wand2 size={17} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-bright)', margin: 0 }}>
+                    Assistant Guidé : Prompt Builder XML Élite
+                  </h2>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Concevoir un prompt structuré en 4 étapes séquentielles avec prévisualisation en temps réel
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsBuilderOpen(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Stepper Navigation */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+              gap: '0.5rem',
+              padding: '0.4rem',
+              backgroundColor: 'var(--bg-input)',
+              borderRadius: '9px',
+              border: '1px solid var(--border-hairline)'
+            }}>
+              {[
+                { step: 1, label: '1. Persona & Rôle' },
+                { step: 2, label: '2. Entrées & Paramètres' },
+                { step: 3, label: '3. Garde-fous & Directives' },
+                { step: 4, label: '4. Schéma & Validation' }
+              ].map(s => (
+                <button
+                  key={s.step}
+                  onClick={() => setBuilderStep(s.step)}
+                  style={{
+                    padding: '7px 8px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: builderStep === s.step ? 'var(--accent-gold)' : 'transparent',
+                    color: builderStep === s.step ? '#000000' : (builderStep > s.step ? 'var(--accent-emerald)' : 'var(--text-muted)'),
+                    fontSize: '0.73rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.1s ease',
+                    textAlign: 'center'
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Step Body & Form */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.25rem' }}>
+              {/* Form Input Area */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                {builderStep === 1 && (
+                  <>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                        Titre Fonctionnel du Prompt (FR)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex : Architecte Stratégique de Campagne Marketing"
+                        value={builderForm.title_fr}
+                        onChange={e => setBuilderForm({ ...builderForm, title_fr: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-hairline)',
+                          backgroundColor: 'var(--bg-input)',
+                          color: 'var(--text-bright)',
+                          fontSize: '0.82rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.7rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                          Catégorie Métier
+                        </label>
+                        <select
+                          value={builderForm.category}
+                          onChange={e => setBuilderForm({ ...builderForm, category: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'var(--bg-input)',
+                            color: 'var(--text-bright)',
+                            fontSize: '0.82rem',
+                            outline: 'none'
+                          }}
+                        >
+                          {['Marketing', 'Tech & Dev', 'Stratégie & Direction', 'Ventes & Closing', 'Finance & Investissement', 'Service Client', 'Ressources Humaines', 'Juridique & Conformité', 'Contenu & Copywriting', 'Product Management', 'Data & Analytics', 'Entrepreneuriat'].map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                          Niveau de Seniorité
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex : Principal Staff Specialist"
+                          value={builderForm.seniority}
+                          onChange={e => setBuilderForm({ ...builderForm, seniority: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'var(--bg-input)',
+                            color: 'var(--text-bright)',
+                            fontSize: '0.82rem',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                        Rôle & Spécialisation Précise (en anglais pour le LLM)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex : elite Enterprise Marketing Strategist and Growth Director"
+                        value={builderForm.role}
+                        onChange={e => setBuilderForm({ ...builderForm, role: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-hairline)',
+                          backgroundColor: 'var(--bg-input)',
+                          color: 'var(--text-bright)',
+                          fontSize: '0.82rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                        Mission Principale & Livrable Attendu
+                      </label>
+                      <textarea
+                        rows={3}
+                        placeholder="Ex : Concevoir une feuille de route trimestrielle à fort impact avec matrices d’exécution concrètes."
+                        value={builderForm.objective}
+                        onChange={e => setBuilderForm({ ...builderForm, objective: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-hairline)',
+                          backgroundColor: 'var(--bg-input)',
+                          color: 'var(--text-bright)',
+                          fontSize: '0.82rem',
+                          outline: 'none',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {builderStep === 2 && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                        Variables d'Entrée Dynamiques
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const idx = builderForm.variables.length + 1;
+                          setBuilderForm({
+                            ...builderForm,
+                            variables: [
+                              ...builderForm.variables,
+                              { name: `Paramètre ${idx}`, placeholder: `{{param-${idx}}}`, desc_fr: `Description du paramètre ${idx}` }
+                            ]
+                          });
+                        }}
+                        style={{
+                          padding: '3px 8px',
+                          borderRadius: '5px',
+                          border: '1px solid var(--border-hairline)',
+                          backgroundColor: 'var(--accent-gold-subtle)',
+                          color: 'var(--accent-gold)',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + Ajouter une Variable
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: '280px', overflowY: 'auto' }}>
+                      {builderForm.variables.map((v, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            padding: '0.6rem',
+                            borderRadius: '8px',
+                            backgroundColor: 'var(--bg-input)',
+                            border: '1px solid var(--border-hairline)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.4rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <input
+                              type="text"
+                              placeholder="Nom FR"
+                              value={v.name}
+                              onChange={e => {
+                                const next = [...builderForm.variables];
+                                next[i].name = e.target.value;
+                                setBuilderForm({ ...builderForm, variables: next });
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '5px 8px',
+                                borderRadius: '5px',
+                                border: '1px solid var(--border-hairline)',
+                                backgroundColor: 'var(--bg-card)',
+                                color: 'var(--text-bright)',
+                                fontSize: '0.75rem'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="{{tag}}"
+                              value={v.placeholder}
+                              onChange={e => {
+                                const next = [...builderForm.variables];
+                                next[i].placeholder = e.target.value;
+                                setBuilderForm({ ...builderForm, variables: next });
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '5px 8px',
+                                borderRadius: '5px',
+                                border: '1px solid var(--border-hairline)',
+                                backgroundColor: 'var(--bg-card)',
+                                color: 'var(--accent-gold)',
+                                fontSize: '0.75rem',
+                                fontFamily: 'var(--font-mono)'
+                              }}
+                            />
+                            {builderForm.variables.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBuilderForm({
+                                    ...builderForm,
+                                    variables: builderForm.variables.filter((_, idx) => idx !== i)
+                                  });
+                                }}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: 'var(--text-faint)',
+                                  cursor: 'pointer',
+                                  padding: '2px 5px'
+                                }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Description du paramètre"
+                            value={v.desc_fr}
+                            onChange={e => {
+                              const next = [...builderForm.variables];
+                              next[i].desc_fr = e.target.value;
+                              setBuilderForm({ ...builderForm, variables: next });
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '5px 8px',
+                              borderRadius: '5px',
+                              border: '1px solid var(--border-hairline)',
+                              backgroundColor: 'var(--bg-card)',
+                              color: 'var(--text-muted)',
+                              fontSize: '0.73rem'
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {builderStep === 3 && (
+                  <>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                          Directives & Règles d'Exécution (Execution Guidelines)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBuilderForm({
+                              ...builderForm,
+                              guidelines: [...builderForm.guidelines, 'Nouvelle directive méthodologique']
+                            });
+                          }}
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'var(--accent-gold-subtle)',
+                            color: 'var(--accent-gold)',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Ajouter
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '180px', overflowY: 'auto' }}>
+                        {builderForm.guidelines.map((g, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <input
+                              type="text"
+                              value={g}
+                              onChange={e => {
+                                const next = [...builderForm.guidelines];
+                                next[i] = e.target.value;
+                                setBuilderForm({ ...builderForm, guidelines: next });
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '6px 8px',
+                                borderRadius: '5px',
+                                border: '1px solid var(--border-hairline)',
+                                backgroundColor: 'var(--bg-input)',
+                                color: 'var(--text-bright)',
+                                fontSize: '0.76rem'
+                              }}
+                            />
+                            {builderForm.guidelines.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBuilderForm({
+                                    ...builderForm,
+                                    guidelines: builderForm.guidelines.filter((_, idx) => idx !== i)
+                                  });
+                                }}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: 'var(--text-faint)',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                        Contraintes Négatives & Anti-Patterns (Ce que l'IA ne doit JAMAIS faire)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={builderForm.negativeConstraints}
+                        onChange={e => setBuilderForm({ ...builderForm, negativeConstraints: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-hairline)',
+                          backgroundColor: 'var(--bg-input)',
+                          color: 'var(--text-bright)',
+                          fontSize: '0.82rem',
+                          outline: 'none',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {builderStep === 4 && (
+                  <>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                          Sections du Schéma Structuré de Sortie
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const idx = builderForm.outputSections.length + 1;
+                            setBuilderForm({
+                              ...builderForm,
+                              outputSections: [...builderForm.outputSections, `${idx}. Nouvelle Section Clé`]
+                            });
+                          }}
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'var(--accent-gold-subtle)',
+                            color: 'var(--accent-gold)',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Ajouter Section
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '180px', overflowY: 'auto' }}>
+                        {builderForm.outputSections.map((sec, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <input
+                              type="text"
+                              value={sec}
+                              onChange={e => {
+                                const next = [...builderForm.outputSections];
+                                next[i] = e.target.value;
+                                setBuilderForm({ ...builderForm, outputSections: next });
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '6px 8px',
+                                borderRadius: '5px',
+                                border: '1px solid var(--border-hairline)',
+                                backgroundColor: 'var(--bg-input)',
+                                color: 'var(--text-bright)',
+                                fontSize: '0.76rem'
+                              }}
+                            />
+                            {builderForm.outputSections.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBuilderForm({
+                                    ...builderForm,
+                                    outputSections: builderForm.outputSections.filter((_, idx) => idx !== i)
+                                  });
+                                }}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: 'var(--text-faint)',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--bg-input)',
+                      border: '1px solid var(--border-hairline)',
+                      fontSize: '0.74rem',
+                      color: 'var(--text-muted)',
+                      lineHeight: 1.45
+                    }}>
+                      <div style={{ fontWeight: 700, color: 'var(--accent-gold)', marginBottom: '0.2rem' }}>
+                        Garantie Déterministe :
+                      </div>
+                      Ce prompt impose un format structuré stricte qui force le modèle à livrer des sections ordonnées sans digression, maximisant la qualité pour Claude 3.5 Sonnet, GPT-4o et Gemini 1.5 Pro.
+                    </div>
+                  </>
+                )}
+
+                {/* Wizard navigation buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.6rem' }}>
+                  <button
+                    type="button"
+                    disabled={builderStep === 1}
+                    onClick={() => setBuilderStep(prev => Math.max(1, prev - 1))}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-input)',
+                      color: builderStep === 1 ? 'var(--text-faint)' : 'var(--text-normal)',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      cursor: builderStep === 1 ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <ChevronLeft size={13} />
+                    <span>Précédent</span>
+                  </button>
+
+                  {builderStep < 4 ? (
+                    <button
+                      type="button"
+                      onClick={() => setBuilderStep(prev => Math.min(4, prev + 1))}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: 'var(--accent-gold)',
+                        color: '#000000',
+                        fontSize: '0.74rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <span>Suivant</span>
+                      <ChevronRight size={13} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleApplyBuilderToWorkbench}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: 'var(--accent-emerald)',
+                        color: '#000000',
+                        fontSize: '0.74rem',
+                        fontWeight: 800,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Sparkles size={13} />
+                      <span>Insérer dans l’Atelier</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Real-Time XML Prompt Preview Box */}
+              <div style={{
+                borderRadius: '10px',
+                border: '1px solid var(--border-hairline)',
+                backgroundColor: 'var(--bg-input)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  padding: '7px 10px',
+                  backgroundColor: 'var(--bg-sidebar)',
+                  borderBottom: '1px solid var(--border-hairline)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <FileCode size={12} color="var(--accent-gold)" />
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-bright)', fontFamily: 'var(--font-mono)' }}>
+                      apercu_xml_temps_reel.xml
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.67rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    ~{Math.max(1, Math.ceil(assembledBuilderPrompt.length / 3.8))} tokens
+                  </span>
+                </div>
+
+                <pre style={{
+                  padding: '0.85rem',
+                  fontSize: '0.72rem',
+                  lineHeight: 1.5,
+                  color: 'var(--text-normal)',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  overflowY: 'auto',
+                  flex: 1,
+                  maxHeight: '380px',
+                  margin: 0
+                }}>
+                  <code>
+                    <HighlightedPrompt text={assembledBuilderPrompt} />
+                  </code>
+                </pre>
+              </div>
             </div>
           </div>
         </div>

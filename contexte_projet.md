@@ -65,7 +65,9 @@ Les données de production sont stockées dans :
 - `src/data/prompts.json` (144 prompts répartis dans les 12 catégories)
 - `src/data/playbooks.json` (9 Playbooks Multi-Étapes de 5 étapes chacun = 45 étapes guidées)
 
-Fonctionnalités avancées de l'Atelier (`src/App.jsx`) :
+- **Prompt Builder Interactif Pas-à-Pas (Assistant Guidé)** : Modal (`PromptBuilderModal` avec classe `ps-prompt-builder`) orchestrant la création d'un prompt XML élite en 4 étapes séquentielles (Persona Senior, Variables d'entrée `{{...}}`, Garde-fous & Directives, Schéma de sortie déterministe) avec prévisualisation XML instantanée et injection directe dans l'Atelier.
+- **Simulateur / Sandbox de Sorties Multi-Modèles (`activeView === 'sandbox'`)** : Simulation déterministe haute fidélité adaptée au schéma structuré et aux variables saisies, modulée selon les styles de Claude 3.5 Sonnet, ChatGPT (GPT-4o) et Gemini 1.5 Pro avec copie en 1 clic.
+- **Export de Fiche de Spécification Technique & Gouvernance d'Équipe (`handleExportTeamSpec`)** : Téléchargement direct d'une fiche Markdown complète (`spec-technique-<id>-<date>.md`) incluant cartouche de gouvernance IA, matrice des paramètres, directives de sécurité et prompt XML final prêt au déploiement.
 - **Palette de Commande Modale `⌘K` (façon Raycast / Linear)** : Recherche floue instantanée sur les 144 prompts, les 9 Playbooks et les Actions Rapides avec navigation intégrale au clavier (`↑`, `↓`, `Entrée`, `ESC`).
 - **Score d'Ingénierie du Prompt (`/100`) & Checklist Qualité en Direct** : Évaluation temps réel de la structure XML (`<system_role>`, `<execution_guidelines>`, `<structured_output_schema>`), du remplissage des variables interactives et de l'injection contextuelle.
 - **Mode Comparaison Côte-à-Côte (`Split-View`)** : Affichage simultané sur 2 colonnes du `prompt_optimise.xml` et du `prompt_source_brut.md`.
@@ -79,6 +81,8 @@ Fonctionnalités avancées de l'Atelier (`src/App.jsx`) :
 
 ## 5. Scripts d'Automatisation & Pipelines (`scripts/`)
 
+- `scripts/verify_phase6.py` : Suite de tests automatisés validant le Prompt Builder Wizard, le Simulateur Multi-Modèles, l'Export de Spécification d'Équipe et l'absence totale d'emoji décoratif (100% SVG Lucide).
+- `scripts/verify_phase5.py` : Suite de tests automatisés vérifiant les 144 prompts, les 12 catégories, les 9 Playbooks, la Palette `⌘K`, le Score de Qualité, le Mode Split-View et l'absence totale d'URL externe ou d'emoji décoratif dans `src/App.jsx`.
 - `scripts/enrich_library_batch.py` & `scripts/enrich_library_phase5.py` : Scripts d'enrichissement par lots pour structurer les prompts en balises XML, les synchroniser sur Notion et mettre à jour `src/data/prompts.json` en 100 % marque blanche.
 - `scripts/verify_phase5.py` : Suite de tests automatisés vérifiant les 144 prompts, les 12 catégories, les 9 Playbooks, la Palette `⌘K`, le Score de Qualité, le Mode Split-View et l'absence totale d'URL externe ou d'emoji décoratif dans `src/App.jsx`.
 - `scripts/update_guides_french.py` : Met à jour les guides stratégiques français sur Notion et sur l'application web.
