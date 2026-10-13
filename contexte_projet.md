@@ -65,6 +65,8 @@ Les données de production sont stockées dans :
 - `src/data/prompts.json` (144 prompts répartis dans les 12 catégories)
 - `src/data/playbooks.json` (9 Playbooks Multi-Étapes de 5 étapes chacun = 45 étapes guidées)
 
+- **Studio d’Évaluation & Benchmarking A/B (`activeView === 'benchmark'`)** : Analyse scientifique de rentabilité et de robustesse découpée en 4 panneaux intégrés : (1) Projections de consommation et coûts de production pour 1 000 exécutions (Claude 3.5 Sonnet, GPT-4o, Gemini 1.5 Pro), (2) Audit de rigueur déterministe noté sur 5 piliers (Persona, Directives, Schéma, Efficience, Garde-fous), (3) Comparateur A/B de variantes avec clonage instantané et édition de prompt en direct, (4) Stress-tests d'intégrité et verrouillage anti-dérive stylistique.
+- **Export Rapport de Benchmark & Évaluation (`handleExportBenchmarkReport`)** : Génération et téléchargement direct d'une synthèse Markdown complète (`rapport-benchmark-<id>-<date>.md`).
 - **Prompt Builder Interactif Pas-à-Pas (Assistant Guidé)** : Modal (`PromptBuilderModal` avec classe `ps-prompt-builder`) orchestrant la création d'un prompt XML élite en 4 étapes séquentielles (Persona Senior, Variables d'entrée `{{...}}`, Garde-fous & Directives, Schéma de sortie déterministe) avec prévisualisation XML instantanée et injection directe dans l'Atelier.
 - **Simulateur / Sandbox de Sorties Multi-Modèles (`activeView === 'sandbox'`)** : Simulation déterministe haute fidélité adaptée au schéma structuré et aux variables saisies, modulée selon les styles de Claude 3.5 Sonnet, ChatGPT (GPT-4o) et Gemini 1.5 Pro avec copie en 1 clic.
 - **Export de Fiche de Spécification Technique & Gouvernance d'Équipe (`handleExportTeamSpec`)** : Téléchargement direct d'une fiche Markdown complète (`spec-technique-<id>-<date>.md`) incluant cartouche de gouvernance IA, matrice des paramètres, directives de sécurité et prompt XML final prêt au déploiement.
@@ -81,7 +83,8 @@ Les données de production sont stockées dans :
 
 ## 5. Scripts d'Automatisation & Pipelines (`scripts/`)
 
-- `scripts/verify_phase6.py` : Suite de tests automatisés validant le Prompt Builder Wizard, le Simulateur Multi-Modèles, l'Export de Spécification d'Équipe et l'absence totale d'emoji décoratif (100% SVG Lucide).
+- `scripts/verify_phase7.py` : Suite de tests automatisés validant le Studio d'Évaluation & Benchmarking A/B, les calculs de coûts, l'audit de rigueur, le comparateur de variantes et l'absence totale d'emoji décoratif (100% SVG Lucide).
+- `scripts/verify_phase6.py` : Suite de tests automatisés validant le Prompt Builder Wizard, le Simulateur Multi-Modèles, l'Export de Spécification d'Équipe et l'absence totale d'emoji décoratif.
 - `scripts/verify_phase5.py` : Suite de tests automatisés vérifiant les 144 prompts, les 12 catégories, les 9 Playbooks, la Palette `⌘K`, le Score de Qualité, le Mode Split-View et l'absence totale d'URL externe ou d'emoji décoratif dans `src/App.jsx`.
 - `scripts/enrich_library_batch.py` & `scripts/enrich_library_phase5.py` : Scripts d'enrichissement par lots pour structurer les prompts en balises XML, les synchroniser sur Notion et mettre à jour `src/data/prompts.json` en 100 % marque blanche.
 - `scripts/verify_phase5.py` : Suite de tests automatisés vérifiant les 144 prompts, les 12 catégories, les 9 Playbooks, la Palette `⌘K`, le Score de Qualité, le Mode Split-View et l'absence totale d'URL externe ou d'emoji décoratif dans `src/App.jsx`.

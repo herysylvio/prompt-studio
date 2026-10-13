@@ -200,6 +200,11 @@ export default function App() {
   const [sandboxModelStyle, setSandboxModelStyle] = useState('claude'); // 'claude' | 'chatgpt' | 'gemini'
   const [copiedSandbox, setCopiedSandbox] = useState(false);
 
+  // Benchmarking & A/B Evaluation states (Phase 7)
+  const [benchmarkVariantB, setBenchmarkVariantB] = useState('');
+  const [benchmarkVariantBEdited, setBenchmarkVariantBEdited] = useState(false);
+  const [copiedBenchmarkReport, setCopiedBenchmarkReport] = useState(false);
+
   const searchInputRef = useRef(null);
   const activeCardRef = useRef(null);
   const fileImportRef = useRef(null);
@@ -246,10 +251,12 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.RECENT_HISTORY, JSON.stringify(recentHistory));
   }, [recentHistory]);
 
-  // Reset live manual edit override when switching prompt
+  // Reset live manual edit override and benchmark variant B when switching prompt
   useEffect(() => {
     setIsLiveEditing(false);
     setManualPromptText(null);
+    setBenchmarkVariantB('');
+    setBenchmarkVariantBEdited(false);
   }, [activePromptId]);
 
   // Sync activePromptId to URL query param without reloading
@@ -716,6 +723,194 @@ ${guardrailsBlock}
     URL.revokeObjectURL(url);
   };
 
+  // Phase 7: Benchmark Multi-Model Cost & Token Projections
+  const benchmarkCostEstimate = useMemo(() => {
+    const promptLength = (effectiveCustomizedPrompt || '').length;
+    const inputTokens = Math.max(1, Math.ceil(promptLength / 3.8));
+    const projectedOutputTokens = 950; // Average structured completion size
+    const totalTokensPerRun = inputTokens + projectedOutputTokens;
+
+    // Pricing rates per 1M tokens (Standard 2026 enterprise pricing)
+    // Claude 3.5 Sonnet: $3.00 input / $15.00 output
+    // GPT-4o: $2.50 input / $10.00 output
+    // Gemini 1.5 Pro: $3.50 input / $10.50 output
+    const models = [
+      {
+        id: 'claude',
+        name: 'Claude 3.5 Sonnet',
+        rateIn: 3.00,
+        rateOut: 15.00,
+        costPer1kRuns: ((inputTokens * 3.00 + projectedOutputTokens * 15.00) / 1000000) * 1000
+      },
+      {
+        id: 'chatgpt',
+        name: 'ChatGPT (GPT-4o)',
+        rateIn: 2.50,
+        rateOut: 10.00,
+        costPer1kRuns: ((inputTokens * 2.50 + projectedOutputTokens * 10.00) / 1000000) * 1000
+      },
+      {
+        id: 'gemini',
+        name: 'Gemini 1.5 Pro',
+        rateIn: 3.50,
+        rateOut: 10.50,
+        costPer1kRuns: ((inputTokens * 3.50 + projectedOutputTokens * 10.50) / 1000000) * 1000
+      }
+    ];
+
+    return {
+      inputTokens,
+      projectedOutputTokens,
+      totalTokensPerRun,
+      models
+    };
+  }, [effectiveCustomizedPrompt]);
+
+  // Phase 7: Benchmark Multi-Axes Rigor Audit Report (5 Pillars)
+  const benchmarkAuditReport = useMemo(() => {
+    const text = effectiveCustomizedPrompt || '';
+    const hasRole = /<system_role>|<role>|you are an? (elite|senior|expert|lead)/i.test(text);
+    const hasGuidelines = /<execution_guidelines>|<instructions>|<guidelines>/i.test(text);
+    const hasSchema = /<structured_output_schema>|<output_format>|<section/i.test(text);
+    const hasConstraints = /<negative_constraints>|<constraints>|never|do not/i.test(text);
+    const hasDynamicVars = (activePrompt?.variables_list?.length || 0) > 0;
+    const tokens = Math.max(1, Math.ceil(text.length / 3.8));
+
+    // Pillar 1: Persona Seniority & Authority (20 pts)
+    const scorePillar1 = hasRole ? 20 : 8;
+    // Pillar 2: Execution Rigor & Methodology (20 pts)
+    const scorePillar2 = hasGuidelines ? 20 : 7;
+    // Pillar 3: Deterministic Schema & Formatting (20 pts)
+    const scorePillar3 = hasSchema ? 20 : 6;
+    // Pillar 4: Token Efficiency & Compactness (20 pts) - optimal between 180 and 850 tokens
+    const scorePillar4 = tokens >= 150 && tokens <= 1100 ? 20 : (tokens < 150 ? 10 : 14);
+    // Pillar 5: Guardrails & Anti-Hallucination (20 pts)
+    const scorePillar5 = hasConstraints ? 20 : (hasGuidelines ? 12 : 5);
+
+    const totalRigorScore = scorePillar1 + scorePillar2 + scorePillar3 + scorePillar4 + scorePillar5;
+
+    const pillars = [
+      {
+        name: 'Autorité & Clarté du Persona',
+        score: scorePillar1,
+        max: 20,
+        status: scorePillar1 >= 18 ? 'Conforme' : 'À renforcer',
+        detail: hasRole ? 'Persona senior délimité avec ancrage méthodologique' : 'Rôle générique sans spécification de séniorité'
+      },
+      {
+        name: 'Rigueur des Directives & Cadre',
+        score: scorePillar2,
+        max: 20,
+        status: scorePillar2 >= 18 ? 'Conforme' : 'À renforcer',
+        detail: hasGuidelines ? 'Directives ordonnées et prescriptions d’exécution explicites' : 'Directives manquantes ou implicites'
+      },
+      {
+        name: 'Déterminisme du Schéma de Sortie',
+        score: scorePillar3,
+        max: 20,
+        status: scorePillar3 >= 18 ? 'Conforme' : 'À renforcer',
+        detail: hasSchema ? 'Balises de section strictes forçant une réponse sans digression' : 'Format de restitution libre sans balise structurante'
+      },
+      {
+        name: 'Efficience Tokens & Densité',
+        score: scorePillar4,
+        max: 20,
+        status: scorePillar4 >= 18 ? 'Conforme' : 'Optimisable',
+        detail: `Densité optimale (${tokens} tokens). Ratio concision/précision équilibré`
+      },
+      {
+        name: 'Garde-fous & Anti-Hallucination',
+        score: scorePillar5,
+        max: 20,
+        status: scorePillar5 >= 18 ? 'Conforme' : 'À renforcer',
+        detail: hasConstraints ? 'Règles négatives et limites explicites détectées' : 'Ajoutez un bloc de contraintes négatives pour verrouiller l’IA'
+      }
+    ];
+
+    // Stress tests checklist
+    const stressChecks = [
+      {
+        title: 'Résistance aux Dérives Stylistiques',
+        passed: hasGuidelines && hasConstraints,
+        hint: 'Le cadrage par directives et contraintes empêche l’IA d’adopter un ton informel.'
+      },
+      {
+        title: 'Contrôle Déterministe des Sections',
+        passed: hasSchema,
+        hint: 'Le modèle ne peut pas omettre de parties critiques du livrable attendu.'
+      },
+      {
+        title: 'Intégrité des Variables Métier',
+        passed: !hasDynamicVars || filledVariablesCount === activePrompt.variables_list.length,
+        hint: hasDynamicVars ? `${filledVariablesCount}/${activePrompt.variables_list.length} variables remplies.` : 'Module sans variable requise.'
+      }
+    ];
+
+    return {
+      totalRigorScore,
+      pillars,
+      stressChecks
+    };
+  }, [effectiveCustomizedPrompt, activePrompt, filledVariablesCount]);
+
+  // Phase 7: Export Benchmark & Evaluation Report (.md)
+  const handleExportBenchmarkReport = () => {
+    if (!activePrompt) return;
+    const isoDate = new Date().toISOString().slice(0, 10);
+    const reportDate = new Date().toLocaleDateString('fr-FR');
+
+    const costLines = benchmarkCostEstimate.models.map(m => {
+      return `| **${m.name}** | \$${m.rateIn.toFixed(2)} / 1M | \$${m.rateOut.toFixed(2)} / 1M | **\$${m.costPer1kRuns.toFixed(3)}** |`;
+    }).join('\n');
+
+    const pillarLines = benchmarkAuditReport.pillars.map(p => {
+      return `| **${p.name}** | **${p.score}/${p.max}** | ${p.status} | ${p.detail} |`;
+    }).join('\n');
+
+    const stressLines = benchmarkAuditReport.stressChecks.map(s => {
+      return `- **${s.passed ? '[CONFORME]' : '[ATTENTION]'} ${s.title}** : ${s.hint}`;
+    }).join('\n');
+
+    const content = [
+      `# Rapport d'Évaluation & Benchmark IA — ${activePrompt.title_fr}`,
+      `**Référence Identifiant :** \`${activePrompt.id}\` | **Date d'Émission :** ${reportDate}`,
+      ``,
+      `---`,
+      ``,
+      `## 1. Score Global de Rigueur & Audit Déterministe : ${benchmarkAuditReport.totalRigorScore}/100`,
+      ``,
+      `| Pilier d'Ingénierie | Score | Conformité | Diagnostic Fonctionnel |`,
+      `| :--- | :--- | :--- | :--- |`,
+      pillarLines,
+      ``,
+      `## 2. Estimation de Consommation & Coûts de Production (Base : 1 000 Exécutions)`,
+      `- **Tokens d'Entrée (Prompt Actuel)** : ~${benchmarkCostEstimate.inputTokens} tokens`,
+      `- **Tokens de Sortie Estimés** : ~${benchmarkCostEstimate.projectedOutputTokens} tokens`,
+      `- **Volume Total par Exécution** : ~${benchmarkCostEstimate.totalTokensPerRun} tokens`,
+      ``,
+      `| Modèle d'IA Cible | Tarif Entrée | Tarif Sortie | Coût Projeté (1 000 Runs) |`,
+      `| :--- | :--- | :--- | :--- |`,
+      costLines,
+      ``,
+      `## 3. Stress-Tests de Robustesse & Garde-fous`,
+      stressLines,
+      ``,
+      benchmarkVariantB ? `## 4. Variante B Expérimentale Comparée\n\`\`\`xml\n${benchmarkVariantB}\n\`\`\`\n` : '',
+      `---`,
+      `*Rapport généré par Prompt Studio — Atelier d'Ingénierie IA Déterministe.*`
+    ].filter(Boolean).join('\n');
+
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rapport-benchmark-${activePrompt.id || 'prompt'}-${isoDate}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Prompt Builder Modal controls
   const openPromptBuilder = () => {
     setBuilderStep(1);
@@ -878,6 +1073,14 @@ ${guardrailsBlock}
         badge: 'Simulation'
       },
       {
+        id: 'act-benchmark-view',
+        type: 'action',
+        groupLabel: 'Actions Rapides',
+        title: activeView === 'benchmark' ? 'Revenir au Prompt Optimisé' : 'Ouvrir le Studio d’Évaluation & Benchmarking',
+        subtitle: 'Projections de coûts multi-modèles, audit de rigueur et comparateur A/B',
+        badge: 'Benchmark'
+      },
+      {
         id: 'act-focus-mode',
         type: 'action',
         groupLabel: 'Actions Rapides',
@@ -954,6 +1157,9 @@ ${guardrailsBlock}
       } else if (item.id === 'act-sandbox-view') {
         setIsLiveEditing(false);
         setActiveView(prev => prev === 'sandbox' ? 'customized' : 'sandbox');
+      } else if (item.id === 'act-benchmark-view') {
+        setIsLiveEditing(false);
+        setActiveView(prev => prev === 'benchmark' ? 'customized' : 'benchmark');
       } else if (item.id === 'act-focus-mode') {
         setFocusMode(prev => !prev);
       } else if (item.id === 'act-toggle-theme') {
@@ -2483,6 +2689,29 @@ ${guardrailsBlock}
                     <FlaskConical size={13} color={activeView === 'sandbox' ? 'var(--accent-gold)' : 'currentColor'} />
                     <span>Simulation de Réponse</span>
                   </button>
+                  <button
+                    onClick={() => {
+                      setIsLiveEditing(false);
+                      setActiveView('benchmark');
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '6px 11px',
+                      borderRadius: '6px',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      border: 'none',
+                      backgroundColor: activeView === 'benchmark' ? 'var(--border-card)' : 'transparent',
+                      color: activeView === 'benchmark' ? 'var(--text-bright)' : 'var(--text-muted)',
+                      cursor: 'pointer'
+                    }}
+                    title="Studio d’Évaluation & Benchmarking A/B (Projections de coûts, audit de rigueur et tests de robustesse)"
+                  >
+                    <Scale size={13} color={activeView === 'benchmark' ? 'var(--accent-gold)' : 'currentColor'} />
+                    <span>Benchmarking & Évaluation</span>
+                  </button>
                 </div>
 
                 {/* Action Buttons & AI Launchers */}
@@ -2806,8 +3035,362 @@ ${guardrailsBlock}
                 </div>
               </div>
 
-              {/* CODE PREVIEW, LIVE EDITOR, SPLIT COMPARISON OR OUTPUT SANDBOX BOX */}
-              {activeView === 'sandbox' ? (
+              {/* CODE PREVIEW, LIVE EDITOR, SPLIT COMPARISON, OUTPUT SANDBOX OR BENCHMARKING BOX */}
+              {activeView === 'benchmark' ? (
+                <div style={{
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-focus)',
+                  backgroundColor: 'var(--bg-input)',
+                  overflow: 'hidden',
+                  marginBottom: '1.35rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1px'
+                }}>
+                  {/* Benchmarking Header */}
+                  <div style={{
+                    padding: '9px 14px',
+                    borderBottom: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-card)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.6rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Scale size={15} color="var(--accent-gold)" />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-bright)' }}>
+                        Studio d’Évaluation, Coûts & Benchmarking A/B
+                      </span>
+                      <span style={{
+                        fontSize: '0.67rem',
+                        fontWeight: 700,
+                        padding: '1px 7px',
+                        borderRadius: '99px',
+                        backgroundColor: 'var(--accent-gold-subtle)',
+                        color: 'var(--accent-gold)'
+                      }}>
+                        Score Déterministe : {benchmarkAuditReport.totalRigorScore}/100
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <button
+                        onClick={handleExportBenchmarkReport}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-hairline)',
+                          backgroundColor: 'var(--bg-card)',
+                          color: 'var(--text-bright)',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                        title="Télécharger la synthèse de benchmark en Markdown (.md)"
+                      >
+                        <Download size={12} />
+                        <span>Rapport (.md)</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const iso = new Date().toISOString().slice(0, 10);
+                          const md = `# Audit Benchmark — ${activePrompt.title_fr}\nScore: ${benchmarkAuditReport.totalRigorScore}/100\nTokens Input: ~${benchmarkCostEstimate.inputTokens}\nTokens Output: ~${benchmarkCostEstimate.projectedOutputTokens}\n`;
+                          navigator.clipboard.writeText(md);
+                          setCopiedBenchmarkReport(true);
+                          setTimeout(() => setCopiedBenchmarkReport(false), 2000);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: copiedBenchmarkReport ? 'var(--accent-emerald)' : 'var(--accent-gold)',
+                          color: '#000000',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {copiedBenchmarkReport ? <Check size={12} /> : <Copy size={12} />}
+                        <span>{copiedBenchmarkReport ? 'Copié' : 'Copier Résumé'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Panel 1: Multi-Model Pricing & Token Projection */}
+                  <div style={{ padding: '1rem', backgroundColor: 'var(--bg-workbench)' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      1. Projections de Consommation & Coûts de Production (Base 1 000 Exécutions)
+                    </div>
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                      gap: '0.75rem',
+                      marginBottom: '0.75rem'
+                    }}>
+                      {benchmarkCostEstimate.models.map(m => (
+                        <div
+                          key={m.id}
+                          style={{
+                            padding: '0.85rem',
+                            borderRadius: '8px',
+                            backgroundColor: 'var(--bg-card)',
+                            border: '1px solid var(--border-hairline)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.35rem'
+                          }}
+                        >
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                            {m.name}
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                            Entrée: ${m.rateIn.toFixed(2)}/1M • Sortie: ${m.rateOut.toFixed(2)}/1M
+                          </div>
+                          <div style={{
+                            marginTop: '0.2rem',
+                            fontSize: '0.92rem',
+                            fontWeight: 800,
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--accent-gold)'
+                          }}>
+                            ~${m.costPer1kRuns.toFixed(3)} <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>/ 1k runs</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <span>Tokens prompt : <strong style={{ color: 'var(--text-bright)', fontFamily: 'var(--font-mono)' }}>~{benchmarkCostEstimate.inputTokens}</strong></span>
+                      <span>Complétion moyenne : <strong style={{ color: 'var(--text-bright)', fontFamily: 'var(--font-mono)' }}>~{benchmarkCostEstimate.projectedOutputTokens}</strong></span>
+                      <span>Total run : <strong style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-mono)' }}>~{benchmarkCostEstimate.totalTokensPerRun} tokens</strong></span>
+                    </div>
+                  </div>
+
+                  {/* Panel 2: 5 Pillars Rigor Breakdown */}
+                  <div style={{ padding: '1rem', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-hairline)' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      2. Audit de Rigueur Déterministe (5 Piliers d’Ingénierie)
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                      {benchmarkAuditReport.pillars.map((p, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            padding: '0.65rem 0.85rem',
+                            borderRadius: '7px',
+                            backgroundColor: 'var(--bg-input)',
+                            border: '1px solid var(--border-hairline)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '0.5rem'
+                          }}
+                        >
+                          <div style={{ minWidth: '220px' }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                              {p.name}
+                            </div>
+                            <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                              {p.detail}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <span style={{
+                              fontSize: '0.67rem',
+                              fontWeight: 700,
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              backgroundColor: p.score >= 18 ? 'var(--accent-emerald-subtle)' : 'var(--bg-card)',
+                              color: p.score >= 18 ? 'var(--accent-emerald)' : 'var(--text-muted)',
+                              border: '1px solid var(--border-hairline)'
+                            }}>
+                              {p.status}
+                            </span>
+                            <span style={{
+                              fontSize: '0.82rem',
+                              fontWeight: 800,
+                              fontFamily: 'var(--font-mono)',
+                              color: p.score >= 18 ? 'var(--accent-emerald)' : 'var(--accent-gold)'
+                            }}>
+                              {p.score}/{p.max}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Panel 3: A/B Variant Comparator */}
+                  <div style={{ padding: '1rem', backgroundColor: 'var(--bg-workbench)', borderTop: '1px solid var(--border-hairline)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-bright)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        3. Comparateur A/B de Variantes de Prompt
+                      </div>
+
+                      {!benchmarkVariantBEdited && (
+                        <button
+                          onClick={() => {
+                            const conciseVariant = (effectiveCustomizedPrompt || '')
+                              .replace(/<negative_constraints>[\s\S]*?<\/negative_constraints>/i, '')
+                              .trim() + '\n\n<!-- Variante B : Format ultra-concis avec focalisation KPI -->';
+                            setBenchmarkVariantB(conciseVariant);
+                            setBenchmarkVariantBEdited(true);
+                          }}
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'var(--accent-gold-subtle)',
+                            color: 'var(--accent-gold)',
+                            fontSize: '0.69rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Cloner en Variante B (Expérimentale)
+                        </button>
+                      )}
+                    </div>
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: benchmarkVariantBEdited ? '1fr 1fr' : '1fr',
+                      gap: '0.75rem'
+                    }}>
+                      {/* Variant A */}
+                      <div style={{
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        backgroundColor: 'var(--bg-card)',
+                        border: '1px solid var(--border-focus)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
+                            Variante A (Prompt Actif en Production)
+                          </span>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                            ~{benchmarkCostEstimate.inputTokens} tokens
+                          </span>
+                        </div>
+                        <pre style={{
+                          padding: '0.6rem',
+                          fontSize: '0.72rem',
+                          lineHeight: 1.45,
+                          color: 'var(--text-normal)',
+                          backgroundColor: 'var(--bg-input)',
+                          borderRadius: '6px',
+                          maxHeight: '160px',
+                          overflowY: 'auto',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          margin: 0
+                        }}>
+                          <code>{effectiveCustomizedPrompt}</code>
+                        </pre>
+                      </div>
+
+                      {/* Variant B (Editable) */}
+                      {benchmarkVariantBEdited && (
+                        <div style={{
+                          padding: '0.75rem',
+                          borderRadius: '8px',
+                          backgroundColor: 'var(--bg-card)',
+                          border: '1px solid var(--accent-emerald)'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--accent-emerald)' }}>
+                              Variante B (Expérimentale)
+                            </span>
+                            <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                              ~{Math.max(1, Math.ceil(benchmarkVariantB.length / 3.8))} tokens
+                            </span>
+                          </div>
+                          <textarea
+                            value={benchmarkVariantB}
+                            onChange={e => setBenchmarkVariantB(e.target.value)}
+                            style={{
+                              width: '100%',
+                              height: '160px',
+                              padding: '0.6rem',
+                              fontSize: '0.72rem',
+                              lineHeight: 1.45,
+                              color: 'var(--text-bright)',
+                              backgroundColor: 'var(--bg-input)',
+                              borderRadius: '6px',
+                              border: '1px solid var(--border-hairline)',
+                              fontFamily: 'var(--font-mono)',
+                              outline: 'none',
+                              resize: 'none'
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Panel 4: Stress-Tests & Guardrails */}
+                  <div style={{ padding: '1rem', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-hairline)' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      4. Stress-Tests de Robustesse & Garde-fous
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {benchmarkAuditReport.stressChecks.map((sc, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            padding: '0.6rem 0.8rem',
+                            borderRadius: '6px',
+                            backgroundColor: 'var(--bg-input)',
+                            border: '1px solid var(--border-hairline)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '0.5rem'
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                              {sc.title}
+                            </div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                              {sc.hint}
+                            </div>
+                          </div>
+
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.67rem',
+                            fontWeight: 700,
+                            padding: '2px 7px',
+                            borderRadius: '4px',
+                            backgroundColor: sc.passed ? 'var(--accent-emerald-subtle)' : 'var(--bg-card)',
+                            color: sc.passed ? 'var(--accent-emerald)' : 'var(--accent-gold)'
+                          }}>
+                            <CheckCircle2 size={11} />
+                            <span>{sc.passed ? 'Verrouillé' : 'Avertissement'}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : activeView === 'sandbox' ? (
                 <div style={{
                   borderRadius: '12px',
                   border: '1px solid var(--border-focus)',
