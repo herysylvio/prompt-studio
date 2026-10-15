@@ -112,6 +112,7 @@ export default function App() {
   const [recentHistory, setRecentHistory] = useState(() => safeLoadJSON(STORAGE_KEYS.RECENT_HISTORY, []));
 
   // Navigation & filter states
+  const [mainNavView, setMainNavView] = useState('home'); // 'home' | 'library' | 'playbooks' | 'workbench'
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [selectedModel, setSelectedModel] = useState('Tous');
@@ -1446,93 +1447,922 @@ ${guardrailsBlock}
         style={{ display: 'none' }}
       />
 
-      {/* MOBILE / TABLET TOP BAR (< 960px) */}
-      <header
-        className="ps-mobile-nav"
-        style={{
-          height: '48px',
-          backgroundColor: 'var(--bg-sidebar)',
-          borderBottom: '1px solid var(--border-hairline)',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 0.85rem',
-          flexShrink: 0,
-          zIndex: 50
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{
-            width: '24px',
-            height: '24px',
-            borderRadius: '6px',
-            backgroundColor: 'var(--accent-gold)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#000'
-          }}>
-            <Command size={13} strokeWidth={2.5} />
-          </div>
-          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-bright)' }}>
-            Prompt Studio
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <button
-            onClick={() => setMobilePane(mobilePane === 'sidebar' ? 'workbench' : 'sidebar')}
-            style={{
-              padding: '5px 9px',
-              borderRadius: '6px',
-              border: '1px solid var(--border-hairline)',
-              backgroundColor: mobilePane === 'sidebar' ? 'var(--bg-highlight)' : 'transparent',
-              color: mobilePane === 'sidebar' ? 'var(--accent-gold)' : 'var(--text-muted)',
-              fontSize: '0.74rem',
-              fontWeight: 600,
-              cursor: 'pointer',
+      {/* GLOBAL TOP NAVIGATION (Desktop & Mobile) */}
+      <header className="ps-global-nav">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+          <div
+            onClick={() => setMainNavView('home')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', userSelect: 'none' }}
+          >
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '7px',
+              backgroundColor: 'var(--accent-gold)',
               display: 'flex',
               alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <ListFilter size={13} />
-            <span>Navigation</span>
-          </button>
+              justifyContent: 'center',
+              color: '#000'
+            }}>
+              <Command size={15} strokeWidth={2.5} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.92rem', fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--text-bright)' }}>
+                Prompt Studio
+              </div>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: 1 }}>
+                Atelier d'Ingénierie IA
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Center Main Nav Tabs */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-card)', padding: '3px 4px', borderRadius: '8px', border: '1px solid var(--border-hairline)' }}>
+          {[
+            { id: 'home', label: 'Accueil', icon: Sparkles },
+            { id: 'library', label: `Bibliothèque (${allPrompts.length})`, icon: Boxes },
+            { id: 'playbooks', label: `Playbooks (${playbooksData.length})`, icon: Compass },
+            { id: 'workbench', label: 'Atelier', icon: SlidersHorizontal }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const isCurrent = mainNavView === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setMainNavView(tab.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '5px 11px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: isCurrent ? 'var(--bg-highlight)' : 'transparent',
+                  color: isCurrent ? 'var(--accent-gold)' : 'var(--text-muted)',
+                  fontSize: '0.76rem',
+                  fontWeight: isCurrent ? 700 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.12s ease'
+                }}
+              >
+                <Icon size={13} color={isCurrent ? 'var(--accent-gold)' : 'currentColor'} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Nav Utilities */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
           <button
-            onClick={() => setMobilePane('feed')}
+            onClick={openCommandPalette}
             style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
               padding: '5px 9px',
-              borderRadius: '6px',
+              borderRadius: '7px',
               border: '1px solid var(--border-hairline)',
-              backgroundColor: mobilePane === 'feed' ? 'var(--bg-highlight)' : 'transparent',
-              color: mobilePane === 'feed' ? 'var(--accent-gold)' : 'var(--text-muted)',
-              fontSize: '0.74rem',
-              fontWeight: 600,
+              backgroundColor: 'var(--bg-input)',
+              color: 'var(--text-muted)',
+              fontSize: '0.73rem',
+              fontWeight: 500,
               cursor: 'pointer'
             }}
+            title="Ouvrir la Palette de Commande (⌘K)"
           >
-            {activePlaybook ? 'Étapes' : `Catalogue (${filteredPrompts.length})`}
-          </button>
-          <button
-            onClick={() => setMobilePane('workbench')}
-            style={{
-              padding: '5px 9px',
-              borderRadius: '6px',
+            <Search size={12} color="var(--accent-gold)" />
+            <span>Rechercher...</span>
+            <kbd style={{
+              fontSize: '0.62rem',
+              fontFamily: 'var(--font-mono)',
+              padding: '1px 4px',
+              borderRadius: '4px',
+              backgroundColor: 'var(--bg-card)',
               border: '1px solid var(--border-hairline)',
-              backgroundColor: mobilePane === 'workbench' ? 'var(--bg-highlight)' : 'transparent',
-              color: mobilePane === 'workbench' ? 'var(--accent-gold)' : 'var(--text-muted)',
-              fontSize: '0.74rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Atelier
+              color: 'var(--text-faint)'
+            }}>⌘K</kbd>
           </button>
+
+          <button
+            onClick={toggleTheme}
+            style={{
+              padding: '5px 8px',
+              borderRadius: '7px',
+              border: '1px solid var(--border-hairline)',
+              backgroundColor: 'var(--bg-card)',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            title="Basculer le thème"
+          >
+            {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+          </button>
+
+          {mainNavView !== 'library' && (
+            <button
+              onClick={() => setMainNavView('library')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '5px 12px',
+                borderRadius: '7px',
+                border: 'none',
+                backgroundColor: 'var(--accent-gold)',
+                color: '#000000',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <span>Catalogue</span>
+              <ChevronRight size={12} />
+            </button>
+          )}
         </div>
       </header>
 
-      {/* MAIN 3-COLUMN WORKSPACE */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+      {/* VIEW 1: LANDING PAGE HERO & BENTO GRID */}
+      {mainNavView === 'home' && (
+        <div style={{ flex: 1, overflowY: 'auto', padding: '2rem 1.5rem 4rem' }}>
+          <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
+
+            {/* HERO SECTION */}
+            <section className="ps-landing-hero" style={{ textAlign: 'center', padding: '2.5rem 1rem 3.5rem' }}>
+              {/* Announcement Pill Tag */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '5px 13px', borderRadius: '99px', backgroundColor: 'var(--bg-highlight)', border: '1px solid var(--border-focus)', marginBottom: '1.4rem' }}>
+                <Sparkles size={13} color="var(--accent-gold)" />
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
+                  Atelier d'Ingénierie IA • 100% Déterministe & Marque Blanche
+                </span>
+              </div>
+
+              {/* Main Headline */}
+              <h1 style={{ fontSize: 'clamp(2.1rem, 4.5vw, 3.6rem)', fontWeight: 800, letterSpacing: '-0.035em', color: 'var(--text-bright)', lineHeight: 1.15, maxWidth: '920px', margin: '0 auto 1.25rem' }}>
+                L'arsenal ultime de prompts d'ingénierie pour décupler vos résultats IA.
+              </h1>
+
+              {/* Subheadline */}
+              <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: '720px', margin: '0 auto 2.2rem' }}>
+                144 architectures XML d'élite et 9 playbooks d'exécution conçus pour Claude 3.5 Sonnet, GPT-4o et Gemini 1.5 Pro. Structurez, personnalisez et déployez en 1 clic.
+              </p>
+
+              {/* CTA Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.9rem', flexWrap: 'wrap', marginBottom: '3rem' }}>
+                <button
+                  onClick={() => setMainNavView('library')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '12px 24px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    backgroundColor: 'var(--accent-gold)',
+                    color: '#000000',
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 8px 24px rgba(245, 158, 11, 0.28)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Boxes size={16} />
+                  <span>Explorer la Bibliothèque (144 Prompts)</span>
+                  <ChevronRight size={15} />
+                </button>
+
+                <button
+                  onClick={openPromptBuilder}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '12px 20px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--border-hairline)',
+                    backgroundColor: 'var(--bg-card)',
+                    color: 'var(--text-bright)',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Wand2 size={16} color="var(--accent-gold)" />
+                  <span>Lancer le Prompt Builder</span>
+                </button>
+              </div>
+
+              {/* FLOATING INTERACTIVE CODE PREVIEW MOCKUP */}
+              <div style={{
+                maxWidth: '880px',
+                margin: '0 auto',
+                borderRadius: '14px',
+                border: '1px solid var(--border-focus)',
+                backgroundColor: 'var(--bg-card)',
+                boxShadow: '0 24px 60px rgba(0, 0, 0, 0.55), 0 0 50px rgba(245, 158, 11, 0.08)',
+                overflow: 'hidden',
+                textAlign: 'left'
+              }}>
+                <div style={{
+                  padding: '9px 14px',
+                  backgroundColor: 'var(--bg-input)',
+                  borderBottom: '1px solid var(--border-hairline)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.8)' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'rgba(245, 158, 11, 0.8)' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.8)' }} />
+                    <span style={{ marginLeft: '8px', fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                      architecture_prompt_studio_elite.xml
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.67rem', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', backgroundColor: 'var(--accent-emerald-subtle)', color: 'var(--accent-emerald)' }}>
+                      Qualité 100/100
+                    </span>
+                    <span style={{ fontSize: '0.67rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-gold)' }}>
+                      Claude 3.5 & GPT-4o Ready
+                    </span>
+                  </div>
+                </div>
+
+                <pre style={{
+                  padding: '1.25rem',
+                  fontSize: '0.78rem',
+                  lineHeight: 1.6,
+                  color: 'var(--text-normal)',
+                  fontFamily: 'var(--font-mono)',
+                  maxHeight: '260px',
+                  overflowY: 'hidden',
+                  margin: 0
+                }}>
+                  <code>
+                    <span style={{ color: 'var(--accent-gold)' }}>&lt;system_role&gt;</span>{'\n'}
+                    {'  '}You are a Principal Growth Architect & AI Strategist. Your mission is to formulate deterministic high-leverage plans.{'\n'}
+                    <span style={{ color: 'var(--accent-gold)' }}>&lt;/system_role&gt;</span>{'\n\n'}
+                    <span style={{ color: 'var(--accent-gold)' }}>&lt;input_parameters&gt;</span>{'\n'}
+                    {'  '}&lt;theme&gt;<span style={{ color: 'var(--accent-emerald)' }}>{"{{sujet-strategique}}"}</span>&lt;/theme&gt;{'\n'}
+                    {'  '}&lt;target_audience&gt;<span style={{ color: 'var(--accent-emerald)' }}>{"{{public-cible}}"}</span>&lt;/target_audience&gt;{'\n'}
+                    <span style={{ color: 'var(--accent-gold)' }}>&lt;/input_parameters&gt;</span>{'\n\n'}
+                    <span style={{ color: 'var(--accent-gold)' }}>&lt;execution_guidelines&gt;</span>{'\n'}
+                    {'  '}- Enforce deterministic sections without conversational filler{'\n'}
+                    {'  '}- Structure output with acceptance criteria and execution metrics{'\n'}
+                    <span style={{ color: 'var(--accent-gold)' }}>&lt;/execution_guidelines&gt;</span>
+                  </code>
+                </pre>
+              </div>
+            </section>
+
+            {/* KEY METRICS STRIP */}
+            <section style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+              gap: '1rem',
+              padding: '1.2rem',
+              borderRadius: '12px',
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-hairline)',
+              marginBottom: '3.5rem'
+            }}>
+              {[
+                { count: '144', label: 'Prompts XML d’Élite', desc: 'Testés et optimisés' },
+                { count: '12', label: 'Piliers Métiers Clés', desc: 'Couverture 360°' },
+                { count: '9', label: 'Playbooks Guidés', desc: '45 étapes séquentielles' },
+                { count: '100%', label: 'Marque Blanche', desc: 'Zéro dépendance tierce' }
+              ].map((stat, i) => (
+                <div key={i} style={{ textAlign: 'center', padding: '0.4rem 0.5rem' }}>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--accent-gold)', marginBottom: '0.2rem' }}>
+                    {stat.count}
+                  </div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-bright)' }}>
+                    {stat.label}
+                  </div>
+                  <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {stat.desc}
+                  </div>
+                </div>
+              ))}
+            </section>
+
+            {/* BENTO GRID OF 12 CATEGORIES */}
+            <section style={{ marginBottom: '3.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '1.35rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
+                    Explorez par Domaine d'Expertise
+                  </div>
+                  <h2 style={{ fontSize: '1.55rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.02em', margin: 0 }}>
+                    12 Piliers Métiers pour l'Entreprise Moderne
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedCategory('Tous');
+                    setMainNavView('library');
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--accent-gold)',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span>Voir tous les 144 modules</span>
+                  <ArrowUpRight size={14} />
+                </button>
+              </div>
+
+              <div className="ps-bento-grid">
+                {categories.filter(c => !['Tous', 'Favoris', 'Recents', 'Personnalisés'].includes(c.id)).map(cat => {
+                  const Icon = cat.icon;
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        setMainNavView('library');
+                      }}
+                      style={{
+                        padding: '1.15rem',
+                        borderRadius: '12px',
+                        backgroundColor: 'var(--bg-card)',
+                        border: '1px solid var(--border-hairline)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = 'var(--border-focus)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = 'var(--border-hairline)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.9rem' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: 'var(--accent-gold-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)' }}>
+                          <Icon size={16} />
+                        </div>
+                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)' }}>
+                          {cat.count} prompts
+                        </span>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                          {cat.label}
+                        </div>
+                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                          Architecture XML, rôles experts et schémas d'exécution dédiés.
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* XML DETERMINISTIC METHOD EXPLAINER */}
+            <section style={{
+              padding: '2rem',
+              borderRadius: '14px',
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-hairline)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+              gap: '1.5rem',
+              marginBottom: '2rem'
+            }}>
+              <div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: 'var(--accent-gold-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)', marginBottom: '0.75rem' }}>
+                  <Cpu size={15} />
+                </div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.4rem' }}>
+                  Structure XML Déterministe
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                  Nos prompts encadrent le rôle, les entrées et les directives dans des balises précises reconnues nativement par Claude et GPT-4o pour éliminer les digressions.
+                </p>
+              </div>
+
+              <div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: 'var(--accent-gold-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)', marginBottom: '0.75rem' }}>
+                  <ShieldAlert size={15} />
+                </div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.4rem' }}>
+                  Contraintes Anti-Hallucination
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                  Chaque module inclut des règles d'exclusion explicites (anti-patterns) interdisant à l'IA d'inventer des données ou d'utiliser du jargon creux.
+                </p>
+              </div>
+
+              <div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: 'var(--accent-gold-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)', marginBottom: '0.75rem' }}>
+                  <SlidersHorizontal size={15} />
+                </div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.4rem' }}>
+                  Variables & Profils Métiers
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                  Injectez en 1 clic l'ADN de votre entreprise (ICP, voix de marque, contraintes) via les Profils de Contexte Global réutilisables.
+                </p>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 2: AIRY LIBRARY GRID (God of Prompt Inspired Layout) */}
+      {mainNavView === 'library' && (
+        <div style={{ flex: 1, overflowY: 'auto', padding: '1.75rem 2rem 4rem' }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+
+            {/* Header & Filter Controls Bar */}
+            <div style={{ marginBottom: '1.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.025em', margin: '0 0 0.25rem' }}>
+                    Bibliothèque de Prompts d'Ingénierie
+                  </h1>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    {filteredPrompts.length} module{filteredPrompts.length > 1 ? 's' : ''} disponible{filteredPrompts.length > 1 ? 's' : ''} • Format XML déterministe
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <button
+                    onClick={openPromptBuilder}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-input)',
+                      color: 'var(--text-bright)',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Wand2 size={13} color="var(--accent-gold)" />
+                    <span>Créer un Prompt Guidé</span>
+                  </button>
+
+                  <button
+                    onClick={openNewPromptModal}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '7px 13px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: 'var(--accent-gold)',
+                      color: '#000000',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Plus size={14} />
+                    <span>Nouveau Prompt</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Horizontal Filter Pills (Scrollable) */}
+              <div style={{
+                display: 'flex',
+                gap: '6px',
+                overflowX: 'auto',
+                paddingBottom: '8px',
+                marginBottom: '1rem'
+              }}>
+                {categories.map(cat => {
+                  const Icon = cat.icon;
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        border: isSelected ? '1px solid var(--border-focus)' : '1px solid var(--border-hairline)',
+                        backgroundColor: isSelected ? 'var(--accent-gold-subtle)' : 'var(--bg-card)',
+                        color: isSelected ? 'var(--accent-gold)' : 'var(--text-normal)',
+                        fontSize: '0.76rem',
+                        fontWeight: isSelected ? 700 : 500,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.12s ease'
+                      }}
+                    >
+                      <Icon size={13} color={isSelected ? 'var(--accent-gold)' : 'currentColor'} />
+                      <span>{cat.label}</span>
+                      <span style={{
+                        fontSize: '0.64rem',
+                        fontFamily: 'var(--font-mono)',
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        backgroundColor: isSelected ? 'rgba(245, 158, 11, 0.2)' : 'var(--bg-input)',
+                        color: isSelected ? 'var(--accent-gold)' : 'var(--text-faint)'
+                      }}>
+                        {cat.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Search Bar & AI Model Selector */}
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '260px', position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
+                  <input
+                    type="text"
+                    placeholder="Rechercher par titre, cas d'usage, variable {{...}}..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 34px 8px 36px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-hairline)',
+                      backgroundColor: 'var(--bg-card)',
+                      color: 'var(--text-bright)',
+                      fontSize: '0.84rem',
+                      outline: 'none'
+                    }}
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch('')}
+                      style={{ position: 'absolute', right: '10px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--bg-card)', padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--border-hairline)' }}>
+                  <Bot size={14} color="var(--accent-gold)" />
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>Modèle :</span>
+                  <select
+                    value={selectedModel}
+                    onChange={e => setSelectedModel(e.target.value)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--text-bright)',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {modelsList.map(m => (
+                      <option key={m} value={m} style={{ backgroundColor: 'var(--bg-card)' }}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* SPACIOUS PROMPT CARDS GRID */}
+            {filteredPrompts.length === 0 ? (
+              <div style={{ padding: '4rem 1rem', textAlign: 'center', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-hairline)' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-bright)', marginBottom: '0.3rem' }}>
+                  Aucun module ne correspond à vos filtres
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                  Essayez d'élargir votre recherche ou de sélectionner une autre catégorie.
+                </div>
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    setSelectedCategory('Tous');
+                    setSelectedModel('Tous');
+                  }}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-focus)',
+                    backgroundColor: 'var(--accent-gold-subtle)',
+                    color: 'var(--accent-gold)',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Réinitialiser les filtres
+                </button>
+              </div>
+            ) : (
+              <div className="ps-library-grid">
+                {filteredPrompts.map(p => {
+                  const isFav = favorites.includes(p.id);
+                  return (
+                    <div
+                      key={p.id}
+                      style={{
+                        padding: '1.25rem',
+                        borderRadius: '12px',
+                        backgroundColor: 'var(--bg-card)',
+                        border: '1px solid var(--border-hairline)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '1rem',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = 'var(--border-focus)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = 'var(--border-hairline)';
+                        e.currentTarget.style.backgroundColor = 'var(--bg-card)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div>
+                        {/* Card Header: Category & Favorite */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                          <span style={{
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            padding: '2px 7px',
+                            borderRadius: '4px',
+                            backgroundColor: 'var(--accent-gold-subtle)',
+                            color: 'var(--accent-gold)'
+                          }}>
+                            {p.category}
+                          </span>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(p.id);
+                            }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '2px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              color: isFav ? 'var(--accent-gold)' : 'var(--text-faint)'
+                            }}
+                            title={isFav ? 'Retirer des favoris' : 'Épingler aux favoris'}
+                          >
+                            <Star size={14} fill={isFav ? 'var(--accent-gold)' : 'none'} />
+                          </button>
+                        </div>
+
+                        {/* Title */}
+                        <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.45rem', lineHeight: 1.35 }}>
+                          {p.title_fr}
+                        </h3>
+
+                        {/* Description */}
+                        <p style={{
+                          fontSize: '0.78rem',
+                          color: 'var(--text-muted)',
+                          lineHeight: 1.5,
+                          marginBottom: '0.85rem',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {p.description_fr}
+                        </p>
+
+                        {/* Model compatibility tags */}
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          {(p.models || []).slice(0, 3).map(m => (
+                            <span
+                              key={m}
+                              style={{
+                                fontSize: '0.63rem',
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                backgroundColor: 'var(--bg-input)',
+                                border: '1px solid var(--border-hairline)',
+                                color: 'var(--text-faint)',
+                                fontFamily: 'var(--font-mono)'
+                              }}
+                            >
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Card Bottom Actions */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderTop: '1px solid var(--border-hairline)',
+                        paddingTop: '0.75rem',
+                        gap: '0.5rem'
+                      }}>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(p.optimized_prompt);
+                            setCopied(true);
+                            setRecentHistory(prev => [{ id: p.id, copiedAt: new Date().toISOString() }, ...prev.filter(x => x.id !== p.id)].slice(0, 15));
+                            setTimeout(() => setCopied(false), 2000);
+                          }}
+                          style={{
+                            flex: 1,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-hairline)',
+                            backgroundColor: 'var(--bg-input)',
+                            color: 'var(--text-normal)',
+                            fontSize: '0.74rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Copy size={12} />
+                          <span>Copier</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActivePromptId(p.id);
+                            setMainNavView('workbench');
+                          }}
+                          style={{
+                            flex: 1.2,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            backgroundColor: 'var(--accent-gold-subtle)',
+                            color: 'var(--accent-gold)',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <span>Atelier</span>
+                          <ArrowUpRight size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 3: PLAYBOOKS CATALOG VIEW */}
+      {mainNavView === 'playbooks' && (
+        <div style={{ flex: 1, overflowY: 'auto', padding: '2rem 1.5rem 4rem' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '2rem' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '99px', backgroundColor: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)', fontSize: '0.72rem', fontWeight: 700, marginBottom: '0.6rem' }}>
+                <Compass size={13} />
+                <span>9 Parcours Multi-Étapes Guidés</span>
+              </div>
+              <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.025em', margin: 0 }}>
+                Playbooks d'Exécution IA
+              </h1>
+              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+                Exécutez des projets complexes de bout en bout grâce à des enchaînements de 5 étapes séquentielles pré-configurées.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: '1.25rem' }}>
+              {playbooksData.map(pb => {
+                const doneCount = pb.steps.filter(s => playbookProgress[`${pb.id}:${s.stepNumber}`]).length;
+                return (
+                  <div
+                    key={pb.id}
+                    style={{
+                      padding: '1.4rem',
+                      borderRadius: '12px',
+                      backgroundColor: 'var(--bg-card)',
+                      border: '1px solid var(--border-hairline)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '1rem',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.borderColor = 'var(--border-focus)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = 'var(--border-hairline)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                        <span style={{ fontSize: '0.67rem', fontWeight: 700, textTransform: 'uppercase', padding: '2px 7px', borderRadius: '4px', backgroundColor: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)' }}>
+                          Playbook • {pb.badge}
+                        </span>
+                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: doneCount === pb.steps.length ? 'var(--accent-emerald)' : 'var(--text-faint)' }}>
+                          {doneCount}/{pb.steps.length} terminé{doneCount > 1 ? 's' : ''}
+                        </span>
+                      </div>
+
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-bright)', marginBottom: '0.45rem' }}>
+                        {pb.title_fr}
+                      </h3>
+
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '0.85rem' }}>
+                        {pb.description_fr}
+                      </p>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {pb.steps.map(s => (
+                          <div key={s.stepNumber} style={{ fontSize: '0.72rem', color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <CheckCircle2 size={11} color={playbookProgress[`${pb.id}:${s.stepNumber}`] ? 'var(--accent-emerald)' : 'var(--border-card)'} />
+                            <span>{s.stepNumber}. {s.stepTitle}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        handleSelectPlaybook(pb);
+                        setMainNavView('workbench');
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        backgroundColor: 'var(--accent-gold)',
+                        color: '#000000',
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Play size={12} fill="#000" />
+                      <span>Lancer le Playbook</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 4: MAIN WORKBENCH (FULL ATELIER DE TRAVAIL) */}
+      {mainNavView === 'workbench' && (
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
         {/* 1. LEFT COLUMN: CATEGORIES, PLAYBOOKS & WORKSPACE SIDEBAR (~248px) */}
         {!focusMode && (
@@ -3774,6 +4604,7 @@ ${guardrailsBlock}
         </main>
 
       </div>
+      )}
 
       {/* MODAL 1: CREATE / EDIT CUSTOM PROMPT */}
       {isModalOpen && (

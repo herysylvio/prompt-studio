@@ -1,16 +1,21 @@
 # Contexte de Projet — Prompt Studio
 
 > **Dossier racine** : `C:\Users\sylvi\DEV\PROMPT STUDIO`  
-> **Dernière mise à jour** : 3 Octobre 2026  
-> **Statut** : En production (Vercel) & synchronisé avec Notion
+> **Dernière mise à jour** : 15 Octobre 2026  
+> **Statut** : En production (Vercel) & synchronisé avec Notion — Architecture Multi-Vues & Redesign Landing / Bibliothèque Déployés
 
 ---
 
 ## 1. Vision & Identité du Projet
 
 **Prompt Studio** est un studio et établi d'ingénierie de prompt interactif de niveau professionnel.
-- **Positionnement** : Interface épurée, inspirée de Mobbin, Linear et Raycast (thèmes sombre/clair, typographie compacte, icônes SVG strictes, zéro emoji décoratif dans l'UI).
-- **Marque blanche totale** : Aucune mention de sources externes. Le produit est une création originale indépendante.
+- **Positionnement & Thème Dark Obsidian & Amber Gold** : Interface ultra-lisible, inspirée des meilleurs studios d'outils tech (Linear, Mobbin, God of Prompt) avec une identité originale « Dark Obsidian & Amber Gold » (`#08090c`, cartes `#11141b`, accents `#f59e0b` et `#10b981`). Typographie moderne (Plus Jakarta Sans + JetBrains Mono), icônes SVG Lucide exclusives (zéro emoji décoratif dans l'UI).
+- **Architecture Hybride Multi-Vues (`mainNavView`)** :
+  1. **Landing Page (`home`)** : Accueil immersif avec badge pillule, grand titre H1, sous-titre explicatif, double CTA ("Explorer la Bibliothèque", "Ouvrir l'Atelier"), carte mockup XML interactive en lévitation, bande de métriques d'impact (144 prompts, 12 piliers, 9 workflows, 100% XML déterministe), Bento Grid exploratoire des 12 piliers métiers et section décortiquant la structure XML élite.
+  2. **Bibliothèque en Grille Aérée (`library`)** : Résout l'encombrement des 3 colonnes en offrant une grille spacieuse de cartes de prompts (`.ps-library-grid`), barre horizontale de sélection par pills de catégories, recherche instantanée, filtrage par modèle recommandé, copie directe et bouton pour charger le prompt dans l'Atelier.
+  3. **Playbooks Métiers (`playbooks`)** : Vue dédiée aux 9 workflows guidés multi-étapes (45 étapes chaînées).
+  4. **Atelier de Travail (`workbench`)** : L'établi 3 colonnes pour l'édition avancée, le Prompt Builder pas-à-pas, le simulateur sandbox multi-modèles, le studio de benchmarking A/B et l'export de spécifications d'équipe.
+- **Marque blanche totale** : Aucune mention ni dépendance vers des bibliothèques tierces. Le produit est 100 % original et indépendant.
 - **Règle linguistique stricte** :
   - **Métadonnées en français** : Titres, descriptions synthétisées, explications de variables et guides stratégiques sont 100 % en français.
   - **Prompts d'exécution en anglais** : Les prompts finaux restent en anglais avec des structures avancées (XML tags, Personas seniors, Directives d'exécution, Schémas de sortie).
@@ -83,6 +88,7 @@ Les données de production sont stockées dans :
 
 ## 5. Scripts d'Automatisation & Pipelines (`scripts/`)
 
+- `scripts/verify_redesign.py` : Suite de tests automatisés validant l'architecture multi-vues (`mainNavView`), la barre de navigation globale (`ps-global-nav`), le Hero et Bento Grid de la Landing Page, la grille spacieuse de la Bibliothèque et l'absence totale d'emoji décoratif (100% SVG Lucide).
 - `scripts/verify_phase7.py` : Suite de tests automatisés validant le Studio d'Évaluation & Benchmarking A/B, les calculs de coûts, l'audit de rigueur, le comparateur de variantes et l'absence totale d'emoji décoratif (100% SVG Lucide).
 - `scripts/verify_phase6.py` : Suite de tests automatisés validant le Prompt Builder Wizard, le Simulateur Multi-Modèles, l'Export de Spécification d'Équipe et l'absence totale d'emoji décoratif.
 - `scripts/verify_phase5.py` : Suite de tests automatisés vérifiant les 144 prompts, les 12 catégories, les 9 Playbooks, la Palette `⌘K`, le Score de Qualité, le Mode Split-View et l'absence totale d'URL externe ou d'emoji décoratif dans `src/App.jsx`.
